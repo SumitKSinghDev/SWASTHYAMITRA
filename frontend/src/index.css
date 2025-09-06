@@ -1,0 +1,640 @@
+/* 
+ * Tailwind CSS Configuration
+ * This file contains Tailwind CSS directives and custom styles
+ * CSS validation warnings for @tailwind and @apply are expected and can be ignored
+ */
+/* stylelint-disable at-rule-no-unknown */
+/* eslint-disable */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* eslint-enable */
+/* stylelint-enable at-rule-no-unknown */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gurmukhi:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+  
+  html {
+    @apply bg-gray-50;
+    scroll-behavior: smooth;
+  }
+  
+  .dark html {
+    @apply bg-gray-950;
+  }
+  
+  .main-content {
+    @apply bg-gray-50;
+  }
+  
+  .dark .main-content {
+    @apply bg-gray-950;
+  }
+  
+  /* Dark mode styles */
+  .dark {
+    @apply bg-gray-950 text-gray-50;
+  }
+  
+  .dark body {
+    @apply bg-gray-950 text-gray-50;
+  }
+  
+  
+  
+  .dark .navbar {
+    @apply bg-gray-900 border-gray-800;
+  }
+  
+  .dark .sidebar {
+    @apply bg-gray-900 border-gray-800;
+  }
+  
+  .dark .card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+  
+  .dark .stats-card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+}
+
+/* 
+ * Custom Components Layer
+ * Contains Tailwind @apply directives for custom component styles
+ * CSS validation warnings for @apply are expected and can be ignored
+ */
+/* stylelint-disable at-rule-no-unknown */
+/* eslint-disable */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-600 text-white hover:bg-secondary-700 active:bg-secondary-800;
+  }
+  
+  .btn-outline {
+    @apply border border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100;
+  }
+  
+  .btn-ghost {
+    @apply hover:bg-gray-100 active:bg-gray-200;
+  }
+  
+  .btn-sm {
+    @apply h-8 px-3 text-xs;
+  }
+  
+  .btn-md {
+    @apply h-10 px-4 py-2;
+  }
+  
+  .btn-lg {
+    @apply h-12 px-8 text-base;
+  }
+  
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .dark .card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+  
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+  
+  .card-title {
+    @apply text-2xl font-semibold leading-tight tracking-tight text-gray-900;
+  }
+  
+  .card-description {
+    @apply text-sm text-gray-500 leading-relaxed;
+  }
+  
+  .card-content {
+    @apply p-6 pt-0;
+  }
+  
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+  
+  .input {
+    @apply flex h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 focus-visible:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200;
+  }
+  
+  .label {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-primary-100 text-primary-800;
+  }
+  
+  .badge-secondary {
+    @apply bg-secondary-100 text-secondary-800;
+  }
+  
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-error {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .navbar {
+    @apply sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm shadow-sm;
+  }
+  
+  .dark .navbar {
+    @apply bg-gray-900/95 border-gray-700;
+  }
+  
+.sidebar {
+  @apply fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 -translate-x-full border-r border-gray-200 bg-white/95 backdrop-blur-sm shadow-lg transition-all duration-300 sm:translate-x-0;
+}
+
+.dark .sidebar {
+  @apply bg-gray-800 border-gray-700;
+}
+
+.sidebar-open {
+  @apply translate-x-0;
+}
+
+.sidebar-collapsed {
+  @apply w-16;
+}
+
+.sidebar-collapsed .sidebar-text {
+  @apply hidden;
+}
+
+.sidebar-collapsed .sidebar-icon {
+  @apply mx-auto;
+}
+  
+  .language-selector {
+    @apply relative inline-block text-left;
+  }
+  
+  .language-dropdown {
+    @apply absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none;
+  }
+  
+  .language-option {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer;
+  }
+  
+  .language-option.active {
+    @apply bg-primary-50 text-primary-700;
+  }
+  
+  .nabha-card {
+    @apply bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200 rounded-xl p-6 shadow-lg;
+  }
+  
+  .nabha-card-header {
+    @apply flex items-center justify-between mb-4;
+  }
+  
+  .nabha-card-title {
+    @apply text-xl font-bold text-primary-800;
+  }
+  
+  .nabha-card-id {
+    @apply text-sm font-mono text-primary-600 bg-primary-200 px-2 py-1 rounded;
+  }
+  
+  .appointment-card {
+    @apply bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .dark .appointment-card {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .appointment-header {
+    @apply flex items-center justify-between mb-2;
+  }
+  
+  .appointment-time {
+    @apply text-sm font-medium text-gray-700;
+  }
+  
+  .dark .appointment-time {
+    @apply text-gray-50;
+  }
+  
+  .appointment-status {
+    @apply text-xs px-2 py-1 rounded-full;
+  }
+  
+  .appointment-status.scheduled {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .appointment-status.confirmed {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .appointment-status.completed {
+    @apply bg-gray-100 text-gray-800;
+  }
+  
+  .appointment-status.cancelled {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .prescription-card {
+    @apply bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .dark .prescription-card {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .prescription-header {
+    @apply flex items-center justify-between mb-3;
+  }
+  
+  .prescription-id {
+    @apply text-sm font-mono text-gray-600;
+  }
+  
+  .prescription-date {
+    @apply text-xs text-gray-500;
+  }
+  
+  .medication-item {
+    @apply flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0;
+  }
+  
+  .medication-name {
+    @apply font-medium text-gray-900;
+  }
+  
+  .medication-dosage {
+    @apply text-sm text-gray-600;
+  }
+  
+  .stats-card {
+    @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .stats-value {
+    @apply text-3xl font-bold text-gray-700;
+  }
+  
+  .dark .stats-value {
+    @apply text-gray-50;
+  }
+  
+  .stats-label {
+    @apply text-sm font-medium text-gray-600;
+  }
+  
+  .dark .stats-label {
+    @apply text-gray-300;
+  }
+  
+  .stats-change {
+    @apply text-sm font-medium;
+  }
+  
+  .stats-change.positive {
+    @apply text-green-600;
+  }
+  
+  .stats-change.negative {
+    @apply text-red-600;
+  }
+  
+  .loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600;
+  }
+  
+  .error-message {
+    @apply text-red-600 text-sm mt-1;
+  }
+  
+  .success-message {
+    @apply text-green-600 text-sm mt-1;
+  }
+  
+  .info-message {
+    @apply text-blue-600 text-sm mt-1;
+  }
+  
+  .warning-message {
+    @apply text-yellow-600 text-sm mt-1;
+  }
+  
+  /* Dark mode styles */
+  .dark .stats-card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
+  
+  .dark .card-title {
+    @apply text-gray-50;
+  }
+  
+  .card-title {
+    @apply text-gray-700;
+  }
+  
+  .dark .card-description {
+    @apply text-gray-300;
+  }
+  
+  .dark .input {
+    @apply bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300;
+  }
+  
+  .dark .btn {
+    @apply bg-gray-800 text-gray-50 hover:bg-gray-700 border-gray-600;
+  }
+  
+  .dark .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700;
+  }
+  
+  .dark .badge-primary {
+    @apply bg-primary-900 text-primary-200;
+  }
+  
+  .dark .badge-success {
+    @apply bg-green-900 text-green-200;
+  }
+  
+  .dark .badge-warning {
+    @apply bg-yellow-900 text-yellow-200;
+  }
+  
+  .dark .badge-error {
+    @apply bg-red-900 text-red-200;
+  }
+  
+  .dark .sidebar h2 {
+    @apply text-gray-50;
+  }
+  
+  .dark .sidebar button {
+    @apply text-gray-300 hover:text-gray-50 hover:bg-gray-800;
+  }
+  
+  .dark .sidebar .nav-link {
+    @apply text-gray-300 hover:text-gray-50 hover:bg-gray-800;
+  }
+  
+  .dark .sidebar .nav-link.active {
+    @apply bg-gray-800 text-gray-50;
+  }
+  
+  /* Sidebar text color overrides */
+  .sidebar .nav-link {
+    @apply text-gray-900;
+  }
+  
+  .dark .sidebar .nav-link {
+    @apply text-gray-100;
+  }
+  
+  .sidebar .sidebar-text {
+    @apply text-gray-900;
+  }
+  
+  .dark .sidebar .sidebar-text {
+    @apply text-gray-100;
+  }
+  
+  /* Profile page text color overrides */
+  .card-title {
+    @apply text-gray-900;
+  }
+  
+  .dark .card-title {
+    @apply text-gray-100;
+  }
+  
+  .card-description {
+    @apply text-gray-800;
+  }
+  
+  .dark .card-description {
+    @apply text-gray-200;
+  }
+  
+  /* Form text color overrides */
+  input, select, textarea {
+    @apply text-gray-900;
+  }
+  
+  .dark input, .dark select, .dark textarea {
+    @apply text-gray-100;
+  }
+  
+  input::placeholder, select::placeholder, textarea::placeholder {
+    @apply text-gray-600;
+  }
+  
+  .dark input::placeholder, .dark select::placeholder, .dark textarea::placeholder {
+    @apply text-gray-300;
+  }
+  
+  /* Force all text to be black in light mode */
+  .profile-page h1, .profile-page h2, .profile-page h3, .profile-page h4, 
+  .profile-page p, .profile-page span, .profile-page label, 
+  .profile-page input, .profile-page select, .profile-page textarea {
+    @apply text-gray-900;
+  }
+  
+  .dark .profile-page h1, .dark .profile-page h2, .dark .profile-page h3, .dark .profile-page h4, 
+  .dark .profile-page p, .dark .profile-page span, .dark .profile-page label, 
+  .dark .profile-page input, .dark .profile-page select, .dark .profile-page textarea {
+    @apply text-gray-100;
+  }
+  
+  /* Additional overrides for specific elements */
+  .profile-page .card-title {
+    @apply text-gray-900 !important;
+  }
+  
+  .dark .profile-page .card-title {
+    @apply text-gray-100 !important;
+  }
+  
+  .profile-page .card-description {
+    @apply text-gray-900 !important;
+  }
+  
+  .dark .profile-page .card-description {
+    @apply text-gray-100 !important;
+  }
+  
+  .profile-page .nav-link {
+    @apply text-gray-900 !important;
+  }
+  
+  .dark .profile-page .nav-link {
+    @apply text-gray-100 !important;
+  }
+  
+  /* Logo text visibility fixes */
+  .navbar .logo-text {
+    @apply text-gray-900 !important;
+    color: #111827 !important;
+  }
+  
+  .dark .navbar .logo-text {
+    @apply text-gray-100 !important;
+    color: #f3f4f6 !important;
+  }
+  
+  /* Force logo visibility */
+  .navbar span[class*="text-xl"] {
+    @apply text-gray-900 !important;
+    color: #111827 !important;
+  }
+  
+  .dark .navbar span[class*="text-xl"] {
+    @apply text-gray-100 !important;
+    color: #f3f4f6 !important;
+  }
+  
+  /* Specific navbar text overrides */
+  .navbar a span {
+    @apply text-gray-900 !important;
+    color: #111827 !important;
+  }
+  
+  .dark .navbar a span {
+    @apply text-gray-100 !important;
+    color: #f3f4f6 !important;
+  }
+  
+  /* Override any potential text color issues */
+  .navbar .flex.items-center.space-x-2 span {
+    @apply text-gray-900 !important;
+    color: #111827 !important;
+  }
+  
+  .dark .navbar .flex.items-center.space-x-2 span {
+    @apply text-gray-100 !important;
+    color: #f3f4f6 !important;
+  }
+  
+  /* Print styles for NABHA card */
+  @media print {
+    .nabha-card {
+      @apply shadow-none border-2 border-gray-300;
+    }
+    
+    .nabha-card-header {
+      @apply border-b-2 border-gray-300 pb-4;
+    }
+    
+    .nabha-card-id {
+      @apply text-lg font-bold;
+    }
+    
+    .btn {
+      @apply hidden;
+    }
+    
+    .card-header {
+      @apply border-b border-gray-300;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
+  }
+  
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+  
+  .shadow-soft {
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  }
+  
+  .shadow-soft-lg {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
+}
+/* eslint-enable */
+/* stylelint-enable at-rule-no-unknown */
+
+
