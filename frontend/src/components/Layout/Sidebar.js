@@ -13,8 +13,9 @@ import {
   Users,
   BarChart3,
   UserPlus,
-  Package,
-  Menu
+  Package as PackageIcon,
+  Menu,
+  Video
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -58,6 +59,12 @@ const Sidebar = () => {
             current: location.pathname === '/patient/appointments',
           },
           {
+            name: 'Video Call',
+            href: '/patient/video-call',
+            icon: Video,
+            current: location.pathname === '/patient/video-call',
+          },
+          {
             name: t('prescriptions'),
             href: '/patient/prescriptions',
             icon: FileText,
@@ -69,6 +76,12 @@ const Sidebar = () => {
             icon: Heart,
             current: location.pathname === '/patient/health-records',
           },
+          {
+            name: 'Medicine Orders',
+            href: '/patient/medicine-orders',
+            icon: PackageIcon,
+            current: location.pathname === '/patient/medicine-orders',
+          },
         ];
 
       case 'doctor':
@@ -79,6 +92,12 @@ const Sidebar = () => {
             href: '/doctor/appointments',
             icon: Calendar,
             current: location.pathname === '/doctor/appointments',
+          },
+          {
+            name: 'Video Consultation',
+            href: '/doctor/video-consultation',
+            icon: Video,
+            current: location.pathname === '/doctor/video-consultation',
           },
           {
             name: 'Prescriptions',
@@ -100,7 +119,7 @@ const Sidebar = () => {
           },
         ];
 
-      case 'asha_worker':
+      case 'asha':
         return [
           ...baseItems,
           {
@@ -135,7 +154,7 @@ const Sidebar = () => {
           {
             name: 'Inventory',
             href: '/pharmacy/inventory',
-            icon: Package,
+            icon: PackageIcon,
             current: location.pathname === '/pharmacy/inventory',
           },
         ];

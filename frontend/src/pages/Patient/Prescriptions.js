@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { FileText, Download, Eye, Calendar, User, Pill, Clock, Filter, Search, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -6,100 +7,53 @@ const PatientPrescriptions = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Mock data - in real app, this would come from API calls
-  const prescriptions = [
-    {
-      id: 1,
-      prescriptionId: 'RX000001',
-      doctor: 'Dr. Rajesh Kumar',
-      specialization: 'Cardiology',
-      date: '2024-01-10',
-      status: 'active',
-      medications: [
-        {
-          name: 'Metformin',
-          dosage: '500mg',
-          frequency: 'Twice daily',
-          duration: '30 days',
-          instructions: 'Take with food'
-        },
-        {
-          name: 'Amlodipine',
-          dosage: '5mg',
-          frequency: 'Once daily',
-          duration: '30 days',
-          instructions: 'Take at bedtime'
-        }
-      ],
-      notes: 'Continue current medication. Follow up in 2 weeks.',
-      nextRefill: '2024-02-10'
-    },
-    {
-      id: 2,
-      prescriptionId: 'RX000002',
-      doctor: 'Dr. Priya Sharma',
-      specialization: 'General Practice',
-      date: '2024-01-08',
-      status: 'completed',
-      medications: [
-        {
-          name: 'Paracetamol',
-          dosage: '500mg',
-          frequency: 'As needed',
-          duration: '7 days',
-          instructions: 'Take for fever or pain'
-        }
-      ],
-      notes: 'For fever and body ache. Complete the course.',
-      nextRefill: null
-    },
-    {
-      id: 3,
-      prescriptionId: 'RX000003',
-      doctor: 'Dr. Amit Singh',
-      specialization: 'Dermatology',
-      date: '2024-01-12',
-      status: 'active',
-      medications: [
-        {
-          name: 'Clobetasol Cream',
-          dosage: '0.05%',
-          frequency: 'Twice daily',
-          duration: '14 days',
-          instructions: 'Apply thin layer on affected area'
-        },
-        {
-          name: 'Cetirizine',
-          dosage: '10mg',
-          frequency: 'Once daily',
-          duration: '14 days',
-          instructions: 'Take at bedtime'
-        }
-      ],
-      notes: 'For skin condition. Avoid direct sunlight.',
-      nextRefill: '2024-01-26'
-    },
-    {
-      id: 4,
-      prescriptionId: 'RX000004',
-      doctor: 'Dr. Neha Gupta',
-      specialization: 'Pediatrics',
-      date: '2024-01-05',
-      status: 'expired',
-      medications: [
-        {
-          name: 'Amoxicillin',
-          dosage: '250mg',
-          frequency: 'Three times daily',
-          duration: '10 days',
-          instructions: 'Take with food'
-        }
-      ],
-      notes: 'For bacterial infection. Complete full course.',
-      nextRefill: null
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+
+  const fetchPrescriptions = async (resetPage = false) => {
+    try {
+      setLoading(true);
+      setError('');
+      const params = { page: resetPage ? 1 : page, limit: 10 };
+      if (filter !== 'all') params.status = filter;
+      const { data } = await axios.get(`${API_BASE}/patients/prescriptions`, { params });
+      const list = data?.data?.prescriptions || [];
+      setPrescriptions(
+        list.map((p) => ({
+          id: p._id,
+          prescriptionId: p.prescriptionId || p._id?.slice(-8).toUpperCase(),
+          doctor: `Dr. ${p.doctor?.firstName || ''} ${p.doctor?.lastName || ''}`.trim(),
+          specialization: p.doctor?.specialization || '',
+          date: p.createdAt,
+          status: p.status || 'active',
+          medications: p.medications || [],
+          notes: p.generalInstructions || '',
+          nextRefill: p.followUpDate || null,
+        }))
+      );
+      setTotalPages(data?.data?.pagination?.totalPages || 1);
+      if (resetPage) setPage(1);
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Failed to load prescriptions');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchPrescriptions(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
+
+  useEffect(() => {
+    fetchPrescriptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const filteredPrescriptions = prescriptions.filter(prescription => {
     const matchesFilter = filter === 'all' || prescription.status === filter;
@@ -189,6 +143,12 @@ const PatientPrescriptions = () => {
 
       {/* Prescriptions List */}
       <div className="space-y-6">
+        {loading && (
+          <div className="text-center text-gray-600">Loading...</div>
+        )}
+        {error && (
+          <div className="text-center text-red-600">{error}</div>
+        )}
         {filteredPrescriptions.map((prescription) => (
           <div key={prescription.id} className="prescription-card">
             <div className="prescription-header">
@@ -278,8 +238,17 @@ const PatientPrescriptions = () => {
         ))}
       </div>
 
+      {/* Pagination */}
+      {!loading && !error && prescriptions.length > 0 && (
+        <div className="flex items-center justify-center gap-3">
+          <button className="btn btn-outline btn-sm" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Prev</button>
+          <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+          <button className="btn btn-outline btn-sm" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</button>
+        </div>
+      )}
+
       {/* No Prescriptions */}
-      {filteredPrescriptions.length === 0 && (
+      {!loading && !error && filteredPrescriptions.length === 0 && (
         <div className="card">
           <div className="card-content text-center py-12">
             <FileText size={48} className="text-gray-400 mx-auto mb-4" />

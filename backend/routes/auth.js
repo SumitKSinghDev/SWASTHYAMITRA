@@ -16,7 +16,8 @@ const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('phone').matches(/^[6-9]\d{9}$/).withMessage('Valid 10-digit phone number is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['patient', 'doctor', 'asha_worker', 'pharmacy', 'admin']).withMessage('Valid role is required')
+  // Public registration only for patients
+  body('role').isIn(['patient']).withMessage('Only patient signup is allowed')
 ];
 
 const loginValidation = [
@@ -40,6 +41,14 @@ router.post('/register', registerValidation, async (req, res) => {
     }
 
     const { firstName, lastName, email, phone, password, role, dateOfBirth, gender, address } = req.body;
+
+    // Enforce signup only for patients
+    if (role !== 'patient') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Signup is only available for patients. Please use the credentials provided by admin to login.'
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -96,14 +105,6 @@ router.post('/register', registerValidation, async (req, res) => {
         communicationPreference: 'sms'
       });
       await patient.save();
-    } else if (role === 'doctor') {
-      const doctor = new Doctor({
-        userId: user._id,
-        specialization: req.body.specialization || 'general_practice',
-        experience: req.body.experience || 0,
-        consultationFee: req.body.consultationFee || 500
-      });
-      await doctor.save();
     }
 
     // Send token

@@ -8,7 +8,8 @@ import {
   Heart, 
   Clock, 
   Plus,
-  QrCode
+  QrCode,
+  Package as PackageIcon
 } from 'lucide-react';
 
 const PatientDashboard = () => {
@@ -18,51 +19,17 @@ const PatientDashboard = () => {
   // Debug: Log user data
   console.log('PatientDashboard - User data:', user);
 
-  // Mock data - in real app, this would come from API calls
+  // Initialize stats to zero for new users; replace with API data when available
   const stats = {
-    totalAppointments: 12,
-    upcomingAppointments: 3,
-    prescriptions: 8,
-    healthRecords: 15
+    totalAppointments: 0,
+    upcomingAppointments: 0,
+    prescriptions: 0,
+    healthRecords: 0
   };
 
-  const upcomingAppointments = [
-    {
-      id: 1,
-      doctor: 'Dr. Rajesh Kumar',
-      specialization: 'Cardiology',
-      date: '2024-01-15',
-      time: '10:00 AM',
-      type: 'Video Consultation',
-      status: 'confirmed'
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Priya Sharma',
-      specialization: 'General Practice',
-      date: '2024-01-18',
-      time: '2:30 PM',
-      type: 'In-Person',
-      status: 'scheduled'
-    }
-  ];
+  const upcomingAppointments = [];
 
-  const recentPrescriptions = [
-    {
-      id: 1,
-      doctor: 'Dr. Rajesh Kumar',
-      date: '2024-01-10',
-      medications: ['Metformin 500mg', 'Amlodipine 5mg'],
-      status: 'active'
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Priya Sharma',
-      date: '2024-01-08',
-      medications: ['Paracetamol 500mg'],
-      status: 'completed'
-    }
-  ];
+  const recentPrescriptions = [];
 
   // Show loading if user data is not available
   if (!user) {
@@ -128,6 +95,16 @@ const PatientDashboard = () => {
             <Heart className="w-6 h-6 text-red-600" />
           </div>
           <p className="text-sm font-semibold text-gray-900">{t('health_records')}</p>
+        </Link>
+        
+        <Link
+          to="/patient/medicine-orders"
+          className="bg-white border border-gray-200 p-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-center group"
+        >
+          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
+            <PackageIcon className="w-6 h-6 text-orange-600" />
+          </div>
+          <p className="text-sm font-semibold text-gray-900">Medicine Orders</p>
         </Link>
       </div>
 

@@ -9,7 +9,13 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, credentials);
+      // Transform email to identifier for backend compatibility
+      const loginData = {
+        identifier: credentials.email,
+        password: credentials.password
+      };
+      
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, loginData);
       const { token, data } = response.data;
       
       // Store token in localStorage
@@ -145,25 +151,109 @@ export const logoutUser = createAsyncThunk(
 );
 
 // Demo user data for testing
-const demoUser = {
-  _id: 'demo-user-id',
-  firstName: 'Demo',
-  lastName: 'User',
-  email: 'demo@code4care.com',
-  phone: '9876543210',
-  role: 'patient',
-  nabhaId: 'NABHA815959NTQF',
-  dateOfBirth: '1990-01-01',
-  gender: 'male',
-  address: {
-    street: '123 Main Street',
-    city: 'Amritsar',
-    state: 'Punjab',
-    pincode: '143001',
-    country: 'India'
+const demoUsers = {
+  patient: {
+    _id: 'demo-patient-id',
+    firstName: 'Rajesh',
+    lastName: 'Kumar',
+    email: 'patient@demo.com',
+    phone: '9876543210',
+    role: 'patient',
+    nabhaId: 'NABHA815959NTQF',
+    dateOfBirth: '1990-01-01',
+    gender: 'male',
+    address: {
+      street: '123 Main Street',
+      city: 'Nabha',
+      state: 'Punjab',
+      pincode: '147201',
+      country: 'India'
+    },
+    isActive: true,
+    isVerified: true
   },
-  isActive: true,
-  isVerified: true
+  doctor: {
+    _id: 'demo-doctor-id',
+    firstName: 'Dr. Priya',
+    lastName: 'Sharma',
+    email: 'doctor@demo.com',
+    phone: '9876543211',
+    role: 'doctor',
+    nabhaId: 'NABHA815959NTQG',
+    specialization: 'General Medicine',
+    licenseNumber: 'PUNJAB123456',
+    experience: 8,
+    consultationFee: 500,
+    address: {
+      street: '456 Hospital Road',
+      city: 'Nabha',
+      state: 'Punjab',
+      pincode: '147201',
+      country: 'India'
+    },
+    isActive: true,
+    isVerified: true
+  },
+  asha: {
+    _id: 'demo-asha-id',
+    firstName: 'Sunita',
+    lastName: 'Devi',
+    email: 'asha@demo.com',
+    phone: '9876543212',
+    role: 'asha',
+    nabhaId: 'NABHA815959NTQH',
+    ashaId: 'ASHA123456',
+    area: 'Nabha Block 1',
+    village: 'Nabha Village',
+    address: {
+      street: '789 Village Road',
+      city: 'Nabha',
+      state: 'Punjab',
+      pincode: '147201',
+      country: 'India'
+    },
+    isActive: true,
+    isVerified: true
+  },
+  pharmacy: {
+    _id: 'demo-pharmacy-id',
+    firstName: 'Amit',
+    lastName: 'Singh',
+    email: 'pharmacy@demo.com',
+    phone: '9876543213',
+    role: 'pharmacy',
+    nabhaId: 'NABHA815959NTQI',
+    pharmacyName: 'Nabha Medical Store',
+    licenseNumber: 'PHAR123456',
+    address: {
+      street: '321 Market Street',
+      city: 'Nabha',
+      state: 'Punjab',
+      pincode: '147201',
+      country: 'India'
+    },
+    isActive: true,
+    isVerified: true
+  },
+  admin: {
+    _id: 'demo-admin-id',
+    firstName: 'Admin',
+    lastName: 'User',
+    email: 'admin@demo.com',
+    phone: '9876543214',
+    role: 'admin',
+    nabhaId: 'NABHA815959NTQJ',
+    department: 'System Administration',
+    address: {
+      street: '654 Admin Building',
+      city: 'Nabha',
+      state: 'Punjab',
+      pincode: '147201',
+      country: 'India'
+    },
+    isActive: true,
+    isVerified: true
+  }
 };
 
 // Initial state
@@ -193,8 +283,9 @@ const authSlice = createSlice({
       state.error = null;
       state.success = null;
     },
-    setDemoUser: (state) => {
-      state.user = demoUser;
+    setDemoUser: (state, action) => {
+      const role = action.payload || 'patient';
+      state.user = demoUsers[role] || demoUsers.patient;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;

@@ -9,10 +9,11 @@ const doctorSchema = new mongoose.Schema({
   },
   
   // Professional Information
+  // License number is optional at registration (verification later)
   licenseNumber: {
     type: String,
-    required: [true, 'Medical license number is required'],
-    unique: true
+    unique: true,
+    sparse: true
   },
   specialization: {
     type: String,

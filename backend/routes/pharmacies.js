@@ -1,346 +1,406 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const Prescription = require('../models/Prescription');
-const { protect, restrictTo } = require('../middleware/auth');
-
 const router = express.Router();
+const Pharmacy = require('../models/Pharmacy');
+const { protect, restrictTo } = require('../middleware/auth');
+const { body, validationResult } = require('express-validator');
 
-// @route   GET /api/pharmacies/profile
-// @desc    Get pharmacy profile
-// @access  Private (Pharmacy only)
-router.get('/profile', protect, restrictTo('pharmacy'), async (req, res) => {
+// Get all pharmacies (public)
+router.get('/', async (req, res) => {
   try {
-    const pharmacy = await User.findById(req.user._id)
-      .select('firstName lastName email phone address profileImage');
+    const {
+      page = 1,
+      limit = 10,
+      city,
+      state,
+      service,
+      search,
+      sort = 'rating',
+      order = 'desc'
+    } = req.query;
+
+    const query = { isActive: true, isVerified: true };
+
+    // Filter by location
+    if (city) query['address.city'] = new RegExp(city, 'i');
+    if (state) query['address.state'] = new RegExp(state, 'i');
+
+    // Filter by service
+    if (service) query.services = service;
+
+    // Search in pharmacy name or medicines
+    if (search) {
+      query.$or = [
+        { pharmacyName: new RegExp(search, 'i') },
+        { 'medicines.name': new RegExp(search, 'i') },
+        { 'medicines.genericName': new RegExp(search, 'i') }
+      ];
+    }
+
+    const sortObj = {};
+    sortObj[sort] = order === 'desc' ? -1 : 1;
+
+    const pharmacies = await Pharmacy.find(query)
+      .populate('userId', 'firstName lastName email phone')
+      .select('-medicines')
+      .sort(sortObj)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Pharmacy.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        pharmacies,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalPharmacies: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching pharmacies:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching pharmacies'
+    });
+  }
+});
+
+// Get pharmacy by ID (public)
+router.get('/:id', async (req, res) => {
+  try {
+    const pharmacy = await Pharmacy.findById(req.params.id)
+      .populate('userId', 'firstName lastName email phone')
+      .select('-medicines');
 
     if (!pharmacy) {
       return res.status(404).json({
-        status: 'error',
+        success: false,
+        message: 'Pharmacy not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { pharmacy }
+    });
+  } catch (error) {
+    console.error('Error fetching pharmacy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching pharmacy'
+    });
+  }
+});
+
+// Get pharmacy medicines
+router.get('/:id/medicines', async (req, res) => {
+  try {
+    const { search, category, prescriptionRequired, inStock } = req.query;
+
+    const pharmacy = await Pharmacy.findById(req.params.id).select('medicines');
+    
+    if (!pharmacy) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pharmacy not found'
+      });
+    }
+
+    let medicines = pharmacy.medicines;
+
+    // Apply filters
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      medicines = medicines.filter(med => 
+        med.name.match(searchRegex) || 
+        med.genericName?.match(searchRegex)
+      );
+    }
+
+    if (category) {
+      medicines = medicines.filter(med => med.category === category);
+    }
+
+    if (prescriptionRequired !== undefined) {
+      medicines = medicines.filter(med => med.prescriptionRequired === (prescriptionRequired === 'true'));
+    }
+
+    if (inStock === 'true') {
+      medicines = medicines.filter(med => med.stock > 0);
+    }
+
+    res.json({
+      success: true,
+      data: { medicines }
+    });
+  } catch (error) {
+    console.error('Error fetching pharmacy medicines:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching medicines'
+    });
+  }
+});
+
+// Check medicine availability across pharmacies
+router.post('/check-availability', async (req, res) => {
+  try {
+    const { medicines, location } = req.body;
+
+    if (!medicines || !Array.isArray(medicines)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Medicines array is required'
+      });
+    }
+
+    const query = { isActive: true, isVerified: true };
+
+    // If location provided, find nearby pharmacies
+    if (location && location.latitude && location.longitude) {
+      query['address.coordinates'] = {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [location.longitude, location.latitude]
+          },
+          $maxDistance: 10000 // 10km radius
+        }
+      };
+    }
+
+    const pharmacies = await Pharmacy.find(query)
+      .populate('userId', 'firstName lastName')
+      .select('pharmacyName address contact medicines rating deliveryFee minimumOrderAmount');
+
+    const availability = medicines.map(medicine => {
+      const availableAt = [];
+      
+      pharmacies.forEach(pharmacy => {
+        const foundMedicine = pharmacy.medicines.find(med => 
+          med.name.toLowerCase().includes(medicine.name.toLowerCase()) ||
+          med.genericName?.toLowerCase().includes(medicine.name.toLowerCase())
+        );
+
+        if (foundMedicine && foundMedicine.stock > 0) {
+          availableAt.push({
+            pharmacyId: pharmacy._id,
+            pharmacyName: pharmacy.pharmacyName,
+            medicine: foundMedicine,
+            address: pharmacy.address,
+            contact: pharmacy.contact,
+            rating: pharmacy.rating,
+            deliveryFee: pharmacy.deliveryFee,
+            minimumOrderAmount: pharmacy.minimumOrderAmount
+          });
+        }
+      });
+
+      return {
+        medicineName: medicine.name,
+        available: availableAt.length > 0,
+        availableAt,
+        totalPharmacies: availableAt.length
+      };
+    });
+
+    res.json({
+      success: true,
+      data: { availability }
+    });
+  } catch (error) {
+    console.error('Error checking medicine availability:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while checking availability'
+    });
+  }
+});
+
+// Create pharmacy profile (protected - pharmacy role only)
+router.post('/', protect, restrictTo('pharmacy'), [
+  body('pharmacyName').notEmpty().withMessage('Pharmacy name is required'),
+  body('licenseNumber').notEmpty().withMessage('License number is required'),
+  body('address.street').notEmpty().withMessage('Street address is required'),
+  body('address.city').notEmpty().withMessage('City is required'),
+  body('address.state').notEmpty().withMessage('State is required'),
+  body('address.pincode').notEmpty().withMessage('Pincode is required'),
+  body('contact.phone').notEmpty().withMessage('Phone number is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    // Check if pharmacy already exists for this user
+    const existingPharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    if (existingPharmacy) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pharmacy profile already exists for this user'
+      });
+    }
+
+    const pharmacyData = {
+      ...req.body,
+      userId: req.user.id
+    };
+
+    const pharmacy = new Pharmacy(pharmacyData);
+    await pharmacy.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Pharmacy profile created successfully',
+      data: { pharmacy }
+    });
+  } catch (error) {
+    console.error('Error creating pharmacy:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while creating pharmacy'
+    });
+  }
+});
+
+// Update pharmacy profile (protected - pharmacy role only)
+router.put('/', protect, restrictTo('pharmacy'), async (req, res) => {
+  try {
+    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    
+    if (!pharmacy) {
+      return res.status(404).json({
+        success: false,
         message: 'Pharmacy profile not found'
       });
     }
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        pharmacy
-      }
-    });
-
-  } catch (error) {
-    console.error('Get pharmacy profile error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error getting pharmacy profile'
-    });
-  }
-});
-
-// @route   PUT /api/pharmacies/profile
-// @desc    Update pharmacy profile
-// @access  Private (Pharmacy only)
-router.put('/profile', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    const allowedUpdates = ['firstName', 'lastName', 'phone', 'address'];
-
-    const updates = {};
-    allowedUpdates.forEach(field => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
-
-    const pharmacy = await User.findByIdAndUpdate(
-      req.user._id,
-      updates,
+    const updatedPharmacy = await Pharmacy.findByIdAndUpdate(
+      pharmacy._id,
+      req.body,
       { new: true, runValidators: true }
     );
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Profile updated successfully',
-      data: {
-        pharmacy
-      }
+    res.json({
+      success: true,
+      message: 'Pharmacy profile updated successfully',
+      data: { pharmacy: updatedPharmacy }
     });
-
   } catch (error) {
-    console.error('Update pharmacy profile error:', error);
+    console.error('Error updating pharmacy:', error);
     res.status(500).json({
-      status: 'error',
-      message: 'Server error updating profile'
+      success: false,
+      message: 'Server error while updating pharmacy'
     });
   }
 });
 
-// @route   GET /api/pharmacies/prescriptions
-// @desc    Get prescriptions assigned to this pharmacy
-// @access  Private (Pharmacy only)
-router.get('/prescriptions', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    const { status, page = 1, limit = 10 } = req.query;
-    
-    const query = { assignedPharmacy: req.user._id };
-    
-    if (status) {
-      query.fulfillmentStatus = status;
-    }
-
-    const prescriptions = await Prescription.find(query)
-      .populate('patient', 'firstName lastName phone email nabhaId')
-      .populate('doctor', 'firstName lastName specialization')
-      .populate('appointment', 'scheduledDate consultationType')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Prescription.countDocuments(query);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        prescriptions,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalPrescriptions: total
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Get pharmacy prescriptions error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error getting prescriptions'
-    });
-  }
-});
-
-// @route   GET /api/pharmacies/prescriptions/:id
-// @desc    Get specific prescription
-// @access  Private (Pharmacy only)
-router.get('/prescriptions/:id', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    const prescription = await Prescription.findOne({
-      _id: req.params.id,
-      assignedPharmacy: req.user._id
-    })
-      .populate('patient', 'firstName lastName phone email nabhaId address')
-      .populate('doctor', 'firstName lastName specialization')
-      .populate('appointment', 'scheduledDate consultationType');
-
-    if (!prescription) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Prescription not found or not assigned to your pharmacy'
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        prescription
-      }
-    });
-
-  } catch (error) {
-    console.error('Get prescription error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error getting prescription'
-    });
-  }
-});
-
-// @route   PUT /api/pharmacies/prescriptions/:id/fulfill
-// @desc    Mark prescription as fulfilled
-// @access  Private (Pharmacy only)
-router.put('/prescriptions/:id/fulfill', protect, restrictTo('pharmacy'), [
-  body('notes').optional().isString()
+// Add medicine to pharmacy (protected - pharmacy role only)
+router.post('/medicines', protect, restrictTo('pharmacy'), [
+  body('name').notEmpty().withMessage('Medicine name is required'),
+  body('dosage').notEmpty().withMessage('Dosage is required'),
+  body('form').isIn(['tablet', 'capsule', 'syrup', 'injection', 'ointment', 'drops', 'powder']).withMessage('Invalid form'),
+  body('manufacturer').notEmpty().withMessage('Manufacturer is required'),
+  body('price').isNumeric().withMessage('Price must be a number'),
+  body('stock').isNumeric().withMessage('Stock must be a number'),
+  body('expiryDate').isISO8601().withMessage('Valid expiry date is required')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        status: 'error',
+        success: false,
         message: 'Validation failed',
         errors: errors.array()
       });
     }
 
-    const { notes } = req.body;
-
-    const prescription = await Prescription.findOne({
-      _id: req.params.id,
-      assignedPharmacy: req.user._id
-    });
-
-    if (!prescription) {
+    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    
+    if (!pharmacy) {
       return res.status(404).json({
-        status: 'error',
-        message: 'Prescription not found or not assigned to your pharmacy'
+        success: false,
+        message: 'Pharmacy profile not found'
       });
     }
 
-    prescription.fulfillmentStatus = 'fulfilled';
-    prescription.fulfillmentDate = new Date();
-    prescription.fulfillmentNotes = notes;
-    await prescription.save();
+    pharmacy.medicines.push(req.body);
+    await pharmacy.save();
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Prescription marked as fulfilled successfully',
-      data: {
-        prescription
-      }
+    res.status(201).json({
+      success: true,
+      message: 'Medicine added successfully',
+      data: { medicine: pharmacy.medicines[pharmacy.medicines.length - 1] }
     });
-
   } catch (error) {
-    console.error('Fulfill prescription error:', error);
+    console.error('Error adding medicine:', error);
     res.status(500).json({
-      status: 'error',
-      message: 'Server error fulfilling prescription'
+      success: false,
+      message: 'Server error while adding medicine'
     });
   }
 });
 
-// @route   POST /api/pharmacies/prescriptions/:id/refill
-// @desc    Add refill to prescription
-// @access  Private (Pharmacy only)
-router.post('/prescriptions/:id/refill', protect, restrictTo('pharmacy'), [
-  body('quantity').isNumeric().withMessage('Quantity is required'),
-  body('notes').optional().isString()
+// Update medicine stock (protected - pharmacy role only)
+router.put('/medicines/:medicineId', protect, restrictTo('pharmacy'), [
+  body('stock').isNumeric().withMessage('Stock must be a number'),
+  body('price').optional().isNumeric().withMessage('Price must be a number')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        status: 'error',
+        success: false,
         message: 'Validation failed',
         errors: errors.array()
       });
     }
 
-    const { quantity, notes } = req.body;
-
-    const prescription = await Prescription.findOne({
-      _id: req.params.id,
-      assignedPharmacy: req.user._id
-    });
-
-    if (!prescription) {
+    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    
+    if (!pharmacy) {
       return res.status(404).json({
-        status: 'error',
-        message: 'Prescription not found or not assigned to your pharmacy'
+        success: false,
+        message: 'Pharmacy profile not found'
       });
     }
 
-    await prescription.addRefill(quantity, req.user._id, notes);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Refill added successfully',
-      data: {
-        prescription
-      }
-    });
-
-  } catch (error) {
-    console.error('Add refill error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error adding refill'
-    });
-  }
-});
-
-// @route   GET /api/pharmacies/statistics
-// @desc    Get pharmacy statistics
-// @access  Private (Pharmacy only)
-router.get('/statistics', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    const totalPrescriptions = await Prescription.countDocuments({ assignedPharmacy: req.user._id });
-    const fulfilledPrescriptions = await Prescription.countDocuments({
-      assignedPharmacy: req.user._id,
-      fulfillmentStatus: 'fulfilled'
-    });
-    const pendingPrescriptions = await Prescription.countDocuments({
-      assignedPharmacy: req.user._id,
-      fulfillmentStatus: 'pending'
-    });
+    const medicine = pharmacy.medicines.id(req.params.medicineId);
     
-    const prescriptionsThisMonth = await Prescription.countDocuments({
-      assignedPharmacy: req.user._id,
-      createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+    if (!medicine) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medicine not found'
+      });
+    }
+
+    medicine.stock = req.body.stock;
+    if (req.body.price !== undefined) {
+      medicine.price = req.body.price;
+    }
+
+    await pharmacy.save();
+
+    res.json({
+      success: true,
+      message: 'Medicine updated successfully',
+      data: { medicine }
     });
-
-    const fulfillmentRate = totalPrescriptions > 0 ? (fulfilledPrescriptions / totalPrescriptions * 100).toFixed(2) : 0;
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        statistics: {
-          totalPrescriptions,
-          fulfilledPrescriptions,
-          pendingPrescriptions,
-          prescriptionsThisMonth,
-          fulfillmentRate
-        }
-      }
-    });
-
   } catch (error) {
-    console.error('Get pharmacy statistics error:', error);
+    console.error('Error updating medicine:', error);
     res.status(500).json({
-      status: 'error',
-      message: 'Server error getting statistics'
-    });
-  }
-});
-
-// @route   GET /api/pharmacies/medicines
-// @desc    Get medicine stock (placeholder for future implementation)
-// @access  Private (Pharmacy only)
-router.get('/medicines', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    // This would typically connect to a medicine inventory system
-    // For now, return a placeholder response
-    res.status(200).json({
-      status: 'success',
-      message: 'Medicine inventory system not yet implemented',
-      data: {
-        medicines: []
-      }
-    });
-
-  } catch (error) {
-    console.error('Get medicines error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error getting medicines'
-    });
-  }
-});
-
-// @route   POST /api/pharmacies/medicines/update-stock
-// @desc    Update medicine stock (placeholder for future implementation)
-// @access  Private (Pharmacy only)
-router.post('/medicines/update-stock', protect, restrictTo('pharmacy'), async (req, res) => {
-  try {
-    // This would typically update medicine inventory
-    // For now, return a placeholder response
-    res.status(200).json({
-      status: 'success',
-      message: 'Medicine inventory system not yet implemented'
-    });
-
-  } catch (error) {
-    console.error('Update medicine stock error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Server error updating medicine stock'
+      success: false,
+      message: 'Server error while updating medicine'
     });
   }
 });

@@ -15,7 +15,6 @@ import {
 
 import { logoutUser } from '../../store/slices/authSlice';
 import { toggleSidebar, setTheme } from '../../store/slices/uiSlice';
-import LanguageSelector from '../Common/LanguageSelector';
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -77,17 +76,27 @@ const Navbar = () => {
           </button>
           
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">C4C</span>
+            {/* Prefer custom brand logo if available in public/brand-logo.png */}
+            <img
+              src="/SWASTHYA.png"
+              alt="SwasthyaMitra"
+              className="h-8 w-8 rounded-lg object-contain hidden sm:block"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+            {/* Fallback mark */}
+            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm sm:hidden">
+              <span className="text-white font-bold text-sm">SM</span>
             </div>
-            <span className="text-xl font-bold logo-text">CODE4CARE</span>
+            <span className="text-xl font-bold logo-text">SWASTHYAMITRA</span>
           </Link>
         </div>
 
         {/* Right side */}
         <div className="flex items-center space-x-4">
-          {/* Language Selector */}
-          <LanguageSelector />
+          {/* Home link (always visible) */}
+          <Link to="/" className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">
+            Home
+          </Link>
 
           {/* Theme Toggle */}
           <button

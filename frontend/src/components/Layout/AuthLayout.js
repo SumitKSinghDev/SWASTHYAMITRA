@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 
@@ -16,11 +16,11 @@ const AuthLayout = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-2xl">C4C</span>
-          </div>
+          <Link to="/" className="inline-block">
+            <img src="/SWASTHYA.png" alt="SwasthyaMitra" className="mx-auto h-16 w-16 object-contain cursor-pointer hover:opacity-80 transition-opacity" />
+          </Link>
           <h2 className="mt-4 text-3xl font-bold text-gray-900">
-            CODE4CARE
+            SWASTHYAMITRA
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Telemedicine Platform for Rural Healthcare
@@ -34,8 +34,8 @@ const AuthLayout = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-600">
-          <p>© 2024 CODE4CARE. All rights reserved.</p>
-          <p className="mt-1">Empowering rural healthcare through technology</p>
+          <p>© 2025 SWASTHYAMITRA. All rights reserved.</p>
+          <p className="text-xs text-gray-400 mt-1">Empowering rural healthcare through technology — made by TEAM CODE4CARE</p>
         </div>
       </div>
     </div>

@@ -8,57 +8,31 @@ const PatientAppointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useTranslation();
 
-  // Mock data - in real app, this would come from API calls
-  const appointments = [
-    {
-      id: 1,
-      doctor: 'Dr. Rajesh Kumar',
-      specialization: 'Cardiology',
-      date: '2024-01-15',
-      time: '10:00 AM',
-      type: 'Video Consultation',
-      status: 'confirmed',
-      duration: '30 minutes',
-      location: 'Online',
-      notes: 'Follow-up consultation for heart condition'
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Priya Sharma',
-      specialization: 'General Practice',
-      date: '2024-01-18',
-      time: '2:30 PM',
-      type: 'In-Person',
-      status: 'scheduled',
-      duration: '45 minutes',
-      location: 'City Medical Center, Amritsar',
-      notes: 'Annual health checkup'
-    },
-    {
-      id: 3,
-      doctor: 'Dr. Amit Singh',
-      specialization: 'Dermatology',
-      date: '2024-01-12',
-      time: '11:15 AM',
-      type: 'Video Consultation',
-      status: 'completed',
-      duration: '20 minutes',
-      location: 'Online',
-      notes: 'Skin condition consultation'
-    },
-    {
-      id: 4,
-      doctor: 'Dr. Neha Gupta',
-      specialization: 'Pediatrics',
-      date: '2024-01-20',
-      time: '3:00 PM',
-      type: 'In-Person',
-      status: 'cancelled',
-      duration: '30 minutes',
-      location: 'Children Hospital, Ludhiana',
-      notes: 'Child vaccination appointment'
+  // Click handlers
+  const handleReschedule = (appointment) => {
+    console.log('Rescheduling appointment:', appointment.id);
+    // In real app, this would open reschedule modal
+  };
+
+  const handleCancel = (appointment) => {
+    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+      console.log('Cancelling appointment:', appointment.id);
+      // In real app, this would make API call to cancel
     }
-  ];
+  };
+
+  const handleViewPrescription = (appointment) => {
+    console.log('Viewing prescription for appointment:', appointment.id);
+    // In real app, this would navigate to prescription details
+  };
+
+  const handleBookFollowUp = (appointment) => {
+    console.log('Booking follow-up for appointment:', appointment.id);
+    // In real app, this would navigate to book appointment page
+  };
+
+  // Start with no appointments; populate via API when available
+  const appointments = [];
 
   const filteredAppointments = appointments.filter(appointment => {
     const matchesFilter = filter === 'all' || appointment.status === filter;
@@ -201,10 +175,16 @@ const PatientAppointments = () => {
                       </div>
                     )}
                     <div className="mt-3 flex space-x-2">
-                      <button className="btn btn-outline btn-sm">
+                      <button 
+                        onClick={() => handleReschedule(appointment)}
+                        className="btn btn-outline btn-sm"
+                      >
                         Reschedule
                       </button>
-                      <button className="btn btn-outline btn-sm text-red-600 hover:text-red-700">
+                      <button 
+                        onClick={() => handleCancel(appointment)}
+                        className="btn btn-outline btn-sm text-red-600 hover:text-red-700"
+                      >
                         Cancel
                       </button>
                     </div>
@@ -265,10 +245,16 @@ const PatientAppointments = () => {
                     )}
                     {appointment.status === 'completed' && (
                       <div className="mt-3 flex space-x-2">
-                        <button className="btn btn-outline btn-sm">
+                        <button 
+                          onClick={() => handleViewPrescription(appointment)}
+                          className="btn btn-outline btn-sm"
+                        >
                           View Prescription
                         </button>
-                        <button className="btn btn-outline btn-sm">
+                        <button 
+                          onClick={() => handleBookFollowUp(appointment)}
+                          className="btn btn-outline btn-sm"
+                        >
                           Book Follow-up
                         </button>
                       </div>

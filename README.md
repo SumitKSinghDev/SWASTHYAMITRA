@@ -1,15 +1,75 @@
-# CODE4CARE Telemedicine Web Platform
+# SWASTHYAMITRA Telemedicine Web Platform
 
-A comprehensive telemedicine platform designed for rural healthcare in Nabha, Punjab, featuring unique NABHA Health Card system and multilingual AI support.
+A comprehensive telemedicine platform designed for rural healthcare, featuring unique NABHA Health Card system and multilingual AI support.
 
-## 🎯 Key Features
+## 🌟 Features
 
 - **NABHA Health Card System**: Unique QR code-based identity for patients
 - **Multi-Role Support**: Patient, Doctor, ASHA Worker, Pharmacy, Admin
-- **Multilingual AI Chatbot**: Punjabi, Hindi, English support with voice
+- **Multilingual Support**: Punjabi, Hindi, English
 - **Offline-First Design**: SMS/USSD fallback for areas with poor internet
 - **Medicine Sync**: Real-time pharmacy integration with delivery tracking
 - **ASHA Worker Integration**: Support for non-digital patients
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or Atlas)
+- Git
+
+### Installation
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/SumitKSinghDev/SWASTHYAMITRA.git
+   cd SWASTHYAMITRA
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm run install-all
+   ```
+
+3. **Environment Setup**
+   ```bash
+   # Backend environment
+   cd backend
+   cp .env.example .env
+   # Edit .env with your MongoDB URI and other settings
+   
+   # Frontend environment
+   cd ../frontend
+   cp .env.example .env
+   # Edit .env with your API URL
+   ```
+
+4. **Start Development Server**
+   ```bash
+   # From root directory
+   npm run dev
+   ```
+
+5. **Access the Application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+
+## 🔧 Configuration
+
+### MongoDB Setup
+- **Local MongoDB**: Use `mongodb://localhost:27017/swasthyamitra`
+- **MongoDB Atlas**: Get connection string from [MongoDB Atlas](https://cloud.mongodb.com)
+
+### Environment Variables
+See `backend/.env.example` and `frontend/.env.example` for required variables.
+
+## 👥 User Roles
+
+1. **Patient**: Register, view NABHA card, book consultations, view prescriptions
+2. **Doctor**: Manage slots, view patient records, prescribe medications
+3. **ASHA Worker**: Register offline patients, generate NABHA cards
+4. **Pharmacy**: Manage stock, sync prescriptions, handle deliveries
+5. **Admin**: User management, system monitoring, reports
 
 ## 🛠️ Tech Stack
 
@@ -25,78 +85,40 @@ A comprehensive telemedicine platform designed for rural healthcare in Nabha, Pu
 - JWT authentication
 - BCrypt for password hashing
 
-### AI & Communication
-- Python FastAPI microservice
-- Twilio/MSG91 for SMS/USSD
-- Firebase for notifications
+## 📱 Demo Accounts
 
-## 🚀 Quick Start
+For testing purposes, you can use these demo accounts:
 
-1. **Install Dependencies**
-   ```bash
-   npm run install-all
-   ```
-
-2. **Environment Setup**
-   - Copy `.env.example` to `.env` in both `backend/` and `frontend/` directories
-   - Configure your MongoDB Atlas connection string
-   - Set up Twilio credentials for SMS functionality
-
-3. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Access the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-
-## 📁 Project Structure
-
-```
-code4care-telemedicine/
-├── frontend/          # React.js frontend application
-├── backend/           # Node.js backend API
-├── ai-service/        # Python AI chatbot microservice
-├── docs/             # Documentation and API specs
-└── deployment/       # Deployment configurations
-```
-
-## 🔐 User Roles
-
-1. **Patient**: Register, view NABHA card, book consultations, view prescriptions
-2. **Doctor**: Manage slots, view patient records, prescribe medications
-3. **ASHA Worker**: Register offline patients, generate NABHA cards
-4. **Pharmacy**: Manage stock, sync prescriptions, handle deliveries
-5. **Admin**: User management, system monitoring, reports
-
-## 🌐 Deployment
-
-- **Backend**: Deployed on Render
-- **Frontend**: Deployed on Netlify/Vercel
-- **Database**: MongoDB Atlas
-- **AI Service**: AWS EC2
-
-## 📱 Offline Support
-
-The platform includes comprehensive offline support:
-- SMS notifications via Twilio
-- USSD integration for basic interactions
-- Offline-first design principles
-- Progressive Web App (PWA) capabilities
+- **Patient**: `patient@demo.com` / `password123`
+- **Doctor**: `doctor@demo.com` / `password123`
+- **ASHA Worker**: `asha@demo.com` / `password123`
+- **Pharmacy**: `pharmacy@demo.com` / `password123`
+- **Admin**: `admin@demo.com` / `password123`
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For support and questions, please contact the CODE4CARE development team.
+For support and questions:
+- Create an issue in this repository
+- Contact: [Your Email/Contact Info]
+
+## 🌟 Acknowledgments
+
+- Built for rural healthcare in India
+- Inspired by the need for accessible telemedicine
+- Open source for community benefit
+
+---
+
+**Made with ❤️ for rural healthcare**

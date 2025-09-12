@@ -86,8 +86,20 @@ const Register = () => {
 
     // Remove confirmPassword from formData before sending
     const { confirmPassword, ...userData } = formData;
+
+    // Clean optional fields to satisfy backend validators
+    const payload = { ...userData };
+    if (!payload.gender) delete payload.gender;
+    if (!payload.dateOfBirth) delete payload.dateOfBirth;
+    if (payload.address) {
+      const { street, city, state, pincode } = payload.address;
+      const allEmpty = [street, city, state, pincode].every(v => !v || String(v).trim() === '');
+      if (allEmpty) delete payload.address;
+    }
+    // Ensure role isn't admin (disallowed server-side)
+    if (payload.role === 'admin') payload.role = 'patient';
     
-    dispatch(registerUser(userData));
+    dispatch(registerUser(payload));
   };
 
   const getRoleDescription = (role) => {
@@ -106,7 +118,7 @@ const Register = () => {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
         <p className="mt-2 text-sm text-gray-600">
-          Join CODE4CARE to access rural healthcare services.
+          Join SWASTHYAMITRA to access rural healthcare services.
         </p>
       </div>
 
@@ -117,7 +129,7 @@ const Register = () => {
             I am a:
           </label>
           <div className="grid grid-cols-2 gap-3">
-            {['patient', 'doctor', 'asha_worker', 'pharmacy', 'admin'].map((role) => (
+            {['patient'].map((role) => (
               <label
                 key={role}
                 className={`relative flex cursor-pointer rounded-lg p-3 border-2 transition-colors ${

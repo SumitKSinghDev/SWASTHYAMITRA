@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://code4care.vercel.app/sitemap.xml
+Sitemap: https://swasthyamitra.example.com/sitemap.xml

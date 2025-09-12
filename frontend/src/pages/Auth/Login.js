@@ -1,159 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Eye, EyeOff, Mail, Lock, Phone, CreditCard } from 'lucide-react';
-import { toast } from 'react-toastify';
-
-import { loginUser, clearError, setDemoUser } from '../../store/slices/authSlice';
+import { loginUser, setDemoUser } from '../../store/slices/authSlice';
+import { Eye, EyeOff, Stethoscope } from 'lucide-react';
 
 const Login = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  const { isLoading, error, isAuthenticated, user } = useSelector((state) => state.auth);
-  
   const [formData, setFormData] = useState({
-    identifier: '',
-    password: '',
+    email: '',
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMethod, setLoginMethod] = useState('email'); // 'email', 'phone', 'nabha'
+  const [errors, setErrors] = useState({});
 
-  const from = location.state?.from?.pathname || `/${user?.role || 'patient'}/dashboard`;
-
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, user, navigate, from]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.identifier || !formData.password) {
-      toast.error('Please fill in all fields');
+    if (!validateForm()) {
       return;
     }
 
-    // Check if it's demo credentials
-    if (formData.identifier === 'patient@demo.com' && formData.password === 'password123') {
-      dispatch(setDemoUser());
-      toast.success('Logged in as demo patient!');
-      return;
+    try {
+      const resultAction = await dispatch(loginUser(formData));
+      if (loginUser.fulfilled.match(resultAction)) {
+        const user = resultAction.payload.user;
+        
+        // Redirect based on user role
+        switch (user.role) {
+          case 'patient':
+            navigate('/patient/dashboard');
+            break;
+          case 'doctor':
+            navigate('/doctor/dashboard');
+            break;
+          case 'asha':
+            navigate('/asha/dashboard');
+            break;
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        // Handle login failure
+        console.error('Login failed:', resultAction.payload);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
     }
-
-    dispatch(loginUser(formData));
   };
 
-  const getPlaceholder = () => {
-    switch (loginMethod) {
-      case 'email':
-        return 'Enter your email address';
-      case 'phone':
-        return 'Enter your phone number';
-      case 'nabha':
-        return 'Enter your NABHA ID';
+  const handleDemoLogin = (role) => {
+    dispatch(setDemoUser(role));
+    
+    // Redirect based on role
+    switch (role) {
+      case 'patient':
+        navigate('/patient/dashboard');
+        break;
+      case 'doctor':
+        navigate('/doctor/dashboard');
+        break;
+      case 'asha':
+        navigate('/asha/dashboard');
+        break;
+      case 'pharmacy':
+        navigate('/pharmacy/dashboard');
+        break;
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
       default:
-        return 'Enter your email address';
-    }
-  };
-
-  const getIcon = () => {
-    switch (loginMethod) {
-      case 'email':
-        return <Mail size={20} className="text-gray-400" />;
-      case 'phone':
-        return <Phone size={20} className="text-gray-400" />;
-      case 'nabha':
-        return <CreditCard size={20} className="text-gray-400" />;
-      default:
-        return <Mail size={20} className="text-gray-400" />;
+        navigate('/patient/dashboard');
     }
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Sign in to your account</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Welcome back! Please sign in to continue.
-        </p>
+      {/* Demo Credentials */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-yellow-800 mb-2">Demo Credentials:</h3>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <button
+            onClick={() => handleDemoLogin('patient')}
+            className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded text-yellow-800 transition-colors"
+          >
+            Patient Demo
+          </button>
+          <button
+            onClick={() => handleDemoLogin('doctor')}
+            className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded text-yellow-800 transition-colors"
+          >
+            Doctor Demo
+          </button>
+          <button
+            onClick={() => handleDemoLogin('asha')}
+            className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded text-yellow-800 transition-colors"
+          >
+            ASHA Demo
+          </button>
+          <button
+            onClick={() => handleDemoLogin('pharmacy')}
+            className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded text-yellow-800 transition-colors"
+          >
+            Pharmacy Demo
+          </button>
+          <button
+            onClick={() => handleDemoLogin('admin')}
+            className="bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded text-yellow-800 transition-colors"
+          >
+            Admin Demo
+          </button>
+        </div>
       </div>
 
-      {/* Login Method Selector */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        <button
-          type="button"
-          onClick={() => setLoginMethod('email')}
-          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
-            loginMethod === 'email'
-              ? 'bg-white text-primary-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Email
-        </button>
-        <button
-          type="button"
-          onClick={() => setLoginMethod('phone')}
-          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
-            loginMethod === 'phone'
-              ? 'bg-white text-primary-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Phone
-        </button>
-        <button
-          type="button"
-          onClick={() => setLoginMethod('nabha')}
-          className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
-            loginMethod === 'nabha'
-              ? 'bg-white text-primary-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          NABHA ID
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Identifier Field */}
+      {/* Login Form */}
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        {/* Email Field */}
         <div>
-          <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
-            {loginMethod === 'email' ? 'Email Address' : 
-             loginMethod === 'phone' ? 'Phone Number' : 'NABHA ID'}
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email Address
           </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              {getIcon()}
-            </div>
-            <input
-              id="identifier"
-              name="identifier"
-              type={loginMethod === 'phone' ? 'tel' : 'text'}
-              value={formData.identifier}
-              onChange={handleChange}
-              placeholder={getPlaceholder()}
-              className="input pl-10"
-              required
-            />
-          </div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={formData.email}
+            onChange={handleChange}
+            className={`appearance-none relative block w-full px-3 py-2 border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
+              errors.email ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder="Enter your email address"
+          />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
         {/* Password Field */}
@@ -162,84 +183,77 @@ const Login = () => {
             Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock size={20} className="text-gray-400" />
-            </div>
             <input
               id="password"
               name="password"
               type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
               value={formData.password}
               onChange={handleChange}
+              className={`appearance-none relative block w-full px-3 py-2 pr-10 border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${
+                errors.password ? 'border-red-300' : 'border-gray-300'
+              }`}
               placeholder="Enter your password"
-              className="input pl-10 pr-10"
-              required
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff size={20} className="text-gray-400 hover:text-gray-600" />
+                <EyeOff className="h-4 w-4 text-gray-400" />
               ) : (
-                <Eye size={20} className="text-gray-400 hover:text-gray-600" />
+                <Eye className="h-4 w-4 text-gray-400" />
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
         </div>
 
-        {/* Forgot Password Link */}
-        <div className="flex items-center justify-between">
-          <Link
-            to="/auth/forgot-password"
-            className="text-sm text-primary-600 hover:text-primary-500"
-          >
-            Forgot your password?
-          </Link>
-        </div>
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn btn-primary btn-lg w-full"
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="loading-spinner mr-2"></div>
-              Signing in...
-            </div>
-          ) : (
-            'Sign in'
-          )}
-        </button>
-      </form>
-
-      {/* Register Link */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link
-            to="/auth/register"
-            className="font-medium text-primary-600 hover:text-primary-500"
+        <div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Sign up here
-          </Link>
-        </p>
-      </div>
-
-      {/* Demo Credentials */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Credentials:</h3>
-        <div className="text-xs text-gray-600 space-y-1">
-          <p><strong>Patient:</strong> patient@demo.com / password123</p>
-          <p><strong>Doctor:</strong> doctor@demo.com / password123</p>
-          <p><strong>ASHA Worker:</strong> asha@demo.com / password123</p>
-          <p><strong>Pharmacy:</strong> pharmacy@demo.com / password123</p>
-          <p><strong>Admin:</strong> admin@demo.com / password123</p>
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Signing in...
+              </div>
+            ) : (
+              <>
+                <Stethoscope className="h-4 w-4 mr-2" />
+                Sign In
+              </>
+            )}
+          </button>
         </div>
-      </div>
+
+        {/* Sign Up Link */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link
+              to="/auth/register"
+              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+            >
+              Sign up here
+            </Link>
+          </p>
+        </div>
+      </form>
     </div>
   );
 };

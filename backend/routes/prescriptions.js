@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Prescription = require('../models/Prescription');
 const Appointment = require('../models/Appointment');
+const Pharmacy = require('../models/Pharmacy');
 const { protect, restrictTo } = require('../middleware/auth');
 
 const router = express.Router();
@@ -372,6 +373,101 @@ router.put('/:id/status', protect, restrictTo('doctor', 'admin'), [
     res.status(500).json({
       status: 'error',
       message: 'Server error updating prescription status'
+    });
+  }
+});
+
+// @route   POST /api/prescriptions/:id/sync-pharmacy
+// @desc    Sync prescription with pharmacy for medicine availability
+// @access  Private (Doctor/Admin only)
+router.post('/:id/sync-pharmacy', protect, restrictTo('doctor', 'admin'), async (req, res) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id)
+      .populate('patient', 'firstName lastName nabhaId')
+      .populate('doctor', 'firstName lastName specialization');
+
+    if (!prescription) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Prescription not found'
+      });
+    }
+
+    // Find nearby pharmacies
+    const pharmacies = await Pharmacy.find({
+      isActive: true,
+      isVerified: true,
+      'address.coordinates': {
+        $exists: true
+      }
+    }).select('pharmacyName address contact medicines rating deliveryFee minimumOrderAmount');
+
+    const medicineAvailability = [];
+
+    // Check availability for each medicine in the prescription
+    if (prescription.medications && prescription.medications.length > 0) {
+      for (const medicine of prescription.medications) {
+        const availableAt = [];
+
+        pharmacies.forEach(pharmacy => {
+          const foundMedicine = pharmacy.medicines.find(med => 
+            med.name.toLowerCase().includes(medicine.name.toLowerCase()) ||
+            med.genericName?.toLowerCase().includes(medicine.name.toLowerCase())
+          );
+
+          if (foundMedicine && foundMedicine.stock > 0) {
+            availableAt.push({
+              pharmacyId: pharmacy._id,
+              pharmacyName: pharmacy.pharmacyName,
+              medicine: foundMedicine,
+              address: pharmacy.address,
+              contact: pharmacy.contact,
+              rating: pharmacy.rating,
+              deliveryFee: pharmacy.deliveryFee,
+              minimumOrderAmount: pharmacy.minimumOrderAmount
+            });
+          }
+        });
+
+        medicineAvailability.push({
+          prescriptionMedicine: medicine,
+          available: availableAt.length > 0,
+          availableAt,
+          totalPharmacies: availableAt.length
+        });
+      }
+    }
+
+    // Update prescription with pharmacy sync data
+    prescription.pharmacySync = {
+      lastSynced: new Date(),
+      medicineAvailability,
+      totalPharmaciesChecked: pharmacies.length
+    };
+
+    await prescription.save();
+
+    console.log(`[PHARMACY_SYNC] Prescription ${prescription._id} synced with ${pharmacies.length} pharmacies`);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Prescription synced with pharmacy database successfully',
+      data: {
+        prescription: {
+          _id: prescription._id,
+          prescriptionNumber: prescription.prescriptionNumber,
+          patient: prescription.patient,
+          doctor: prescription.doctor,
+          pharmacySync: prescription.pharmacySync
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Pharmacy sync error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Server error syncing with pharmacy'
     });
   }
 });

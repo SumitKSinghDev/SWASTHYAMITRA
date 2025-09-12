@@ -6,10 +6,16 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import App from './App';
+import axios from 'axios';
 import { store } from './store/store';
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+// Bootstrap Authorization header from localStorage on first load
+const existingToken = localStorage.getItem('token');
+if (existingToken) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${existingToken}`;
+}
 root.render(
   <React.StrictMode>
     <Provider store={store}>

@@ -68,7 +68,7 @@ const Layout = () => {
         <main className={`flex-1 transition-all duration-300 ${
           sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
         } ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="p-8 bg-gray-50 dark:bg-gray-950 min-h-screen main-content">
+          <div className="p-8 bg-white min-h-screen main-content">
             <Outlet />
           </div>
         </main>

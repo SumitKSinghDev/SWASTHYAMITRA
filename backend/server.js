@@ -37,12 +37,31 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/code4care', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+(() => {
+  const baseUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/swasthyamitra';
+  const dbName = process.env.DB_NAME || 'swasthyamitra';
+
+  // If the URI does not specify a database, append DB_NAME
+  // Handles cases like mongodb+srv://host/ and mongodb://host:port
+  let mongoUri = baseUri;
+  try {
+    const hasDbPath = /\/[^/?]+(?:\?|$)/.test(baseUri.replace(/^mongodb(\+srv)?:\/\//, ''));
+    if (!hasDbPath && dbName) {
+      mongoUri = baseUri.endsWith('/') ? `${baseUri}${dbName}` : `${baseUri}/${dbName}`;
+    }
+  } catch (e) {
+    // Fallback to baseUri if regex fails for any reason
+    mongoUri = baseUri;
+  }
+
+  mongoose
+    .connect(mongoUri)
+    .then(() => {
+      console.log('✅ MongoDB connected successfully');
+      console.log(`🗃️ Database URI: ${mongoUri}`);
+    })
+    .catch((err) => console.error('❌ MongoDB connection error:', err));
+})();
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -55,12 +74,18 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/nabha-cards', require('./routes/nabhaCards'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/video-calls', require('./routes/videoCalls'));
+app.use('/api/vaccines', require('./routes/vaccines'));
+app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/health-centers', require('./routes/healthCenters'));
+app.use('/api/medicine-orders', require('./routes/medicineOrders'));
+app.use('/api/health-assistant', require('./routes/healthAssistant'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'CODE4CARE API is running',
+    message: 'SWASTHYAMITRA API is running',
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
@@ -88,7 +113,7 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 CODE4CARE Backend running on port ${PORT}`);
+  console.log(`🚀 SWASTHYAMITRA Backend running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });

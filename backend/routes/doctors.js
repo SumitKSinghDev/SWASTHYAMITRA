@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query } = require('express-validator');
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
@@ -376,6 +376,14 @@ router.post('/prescriptions', protect, restrictTo('doctor'), [
 
     await prescription.save();
 
+    // Minimal pharmacy sync log (placeholder for future integration)
+    console.log('[PharmacySync] New prescription created', {
+      prescriptionId: prescription._id.toString(),
+      patientId: patientId.toString(),
+      doctorId: req.user._id.toString(),
+      medications: medications.map(m => m.name)
+    });
+
     // Update appointment with prescription
     appointment.prescription = prescription._id;
     await appointment.save();
@@ -562,5 +570,106 @@ router.put('/availability', protect, restrictTo('doctor'), async (req, res) => {
     });
   }
 });
+
+// List doctors with filters
+// @route   GET /api/doctors
+// @desc    Public list of doctors with filters & pagination
+// @access  Public
+router.get(
+  '/',
+  [
+    query('specialization').optional().isString(),
+    query('q').optional().isString(),
+    query('isVerified').optional().isBoolean().toBoolean(),
+    query('page').optional().isInt({ min: 1 }).toInt(),
+    query('limit').optional().isInt({ min: 1, max: 50 }).toInt(),
+    query('sort').optional().isIn(['rating', 'experience', 'fee']).withMessage('Invalid sort field'),
+    query('order').optional().isIn(['asc', 'desc']).withMessage('Invalid order')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Validation failed',
+          errors: errors.array(),
+        });
+      }
+
+      const {
+        specialization,
+        q,
+        isVerified,
+        page = 1,
+        limit = 10,
+        sort = 'rating',
+        order = 'desc',
+      } = req.query;
+
+      const filter = {};
+      if (specialization) filter.specialization = specialization;
+      if (typeof isVerified === 'boolean') filter.isVerified = isVerified;
+
+      // Text search across doctor bio and linked user name
+      const userMatch = {};
+      if (q) {
+        userMatch.$or = [
+          { firstName: { $regex: q, $options: 'i' } },
+          { lastName: { $regex: q, $options: 'i' } },
+        ];
+      }
+
+      // Sorting
+      const sortMap = {
+        rating: { 'rating.average': order === 'asc' ? 1 : -1 },
+        experience: { experience: order === 'asc' ? 1 : -1 },
+        fee: { consultationFee: order === 'asc' ? 1 : -1 },
+      };
+      const sortBy = sortMap[sort] || sortMap.rating;
+
+      // Query with population and optional name search
+      let queryBuilder = Doctor.find(filter)
+        .populate({ path: 'userId', select: 'firstName lastName profileImage city' })
+        .sort(sortBy)
+        .limit(limit)
+        .skip((page - 1) * limit);
+
+      // If searching by user name, we need to first find matching users
+      if (q) {
+        const matchedUsers = await User.find(userMatch).select('_id');
+        filter.userId = { $in: matchedUsers.map((u) => u._id) };
+        queryBuilder = Doctor.find(filter)
+          .populate({ path: 'userId', select: 'firstName lastName profileImage city' })
+          .sort(sortBy)
+          .limit(limit)
+          .skip((page - 1) * limit);
+      }
+
+      const [doctors, total] = await Promise.all([
+        queryBuilder.exec(),
+        Doctor.countDocuments(filter),
+      ]);
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          doctors,
+          pagination: {
+            currentPage: Number(page),
+            totalPages: Math.ceil(total / limit),
+            totalItems: total,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('List doctors error:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Server error listing doctors',
+      });
+    }
+  }
+);
 
 module.exports = router;
