@@ -157,30 +157,73 @@ const HealthAssistant = () => {
   const startConversation = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.post(`${API_BASE}/health-assistant/conversation/start`, {
-        language: selectedLanguage,
-        userId: isAuthenticated ? user?._id : null
-      });
+      
+      // Try to get welcome message from API
+      try {
+        const response = await axios.post(`${API_BASE}/health-assistant/conversation/start`, {
+          language: selectedLanguage,
+          userId: isAuthenticated ? user?._id : null
+        });
 
-      if (response.data.success) {
-        setSessionId(response.data.sessionId);
-        const initialMessage = {
-          id: Date.now(),
-          type: 'assistant',
-          content: response.data.message,
-          timestamp: new Date(),
-          showVoiceMenu: true
-        };
-        setMessages([initialMessage]);
-        
-        // Load medicine reminders if authenticated
-        if (isAuthenticated) {
+        if (response.data.success) {
+          setSessionId(response.data.sessionId);
+          const initialMessage = {
+            id: Date.now(),
+            type: 'assistant',
+            content: response.data.message,
+            timestamp: new Date(),
+            showVoiceMenu: true
+          };
+          setMessages([initialMessage]);
+          
+          // Load medicine reminders if authenticated
+          if (isAuthenticated) {
+            await loadMedicineReminders();
+          }
+          return;
+        }
+      } catch (apiError) {
+        console.log('API not available, using offline mode:', apiError.message);
+      }
+      
+      // Fallback: Show welcome message even if API fails
+      const welcomeMessages = {
+        english: "Hello! I'm your AI Health Assistant. I'm here to help you with health-related questions, symptom checking, and general health guidance. How can I assist you today?",
+        hindi: "नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। मैं यहां आपकी स्वास्थ्य संबंधी प्रश्नों, लक्षण जांच और सामान्य स्वास्थ्य मार्गदर्शन में मदद के लिए हूं। आज मैं आपकी कैसे सहायता कर सकता हूं?",
+        punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ AI ਸਿਹਤ ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਇੱਥੇ ਤੁਹਾਡੇ ਸਿਹਤ ਸੰਬੰਧੀ ਸਵਾਲਾਂ, ਲੱਛਣ ਜਾਂਚ ਅਤੇ ਆਮ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਵਿੱਚ ਮਦਦ ਲਈ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਸਹਾਇਤਾ ਕਰ ਸਕਦਾ ਹਾਂ?"
+      };
+      
+      const initialMessage = {
+        id: Date.now(),
+        type: 'assistant',
+        content: welcomeMessages[selectedLanguage] || welcomeMessages.english,
+        timestamp: new Date(),
+        showVoiceMenu: true,
+        isOffline: true
+      };
+      setMessages([initialMessage]);
+      
+      // Load medicine reminders if authenticated
+      if (isAuthenticated) {
+        try {
           await loadMedicineReminders();
+        } catch (error) {
+          console.log('Could not load medicine reminders:', error.message);
         }
       }
+      
     } catch (error) {
       console.error('Error starting conversation:', error);
-      setShowOfflineMode(true);
+      // Even if everything fails, show a basic welcome message
+      const fallbackMessage = {
+        id: Date.now(),
+        type: 'assistant',
+        content: "Hello! I'm your AI Health Assistant. I'm currently in offline mode but can still help with basic health guidance. How can I assist you?",
+        timestamp: new Date(),
+        showVoiceMenu: true,
+        isOffline: true
+      };
+      setMessages([fallbackMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -212,38 +255,45 @@ const HealthAssistant = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/health-assistant/conversation/message`, {
-        sessionId,
-        message,
-        language: selectedLanguage
-      });
+      // Try API first if sessionId exists
+      if (sessionId) {
+        try {
+          const response = await axios.post(`${API_BASE}/health-assistant/conversation/message`, {
+            sessionId,
+            message,
+            language: selectedLanguage
+          });
 
-      if (response.data.success) {
-        const assistantMessage = {
-          id: Date.now() + 1,
-          type: 'assistant',
-          content: response.data.message,
-          timestamp: new Date(),
-          requiresDoctor: response.data.requiresDoctor,
-          emergency: response.data.emergency,
-          nextSteps: response.data.nextSteps,
-          smsResponse: response.data.smsResponse
-        };
+          if (response.data.success) {
+            const assistantMessage = {
+              id: Date.now() + 1,
+              type: 'assistant',
+              content: response.data.message,
+              timestamp: new Date(),
+              requiresDoctor: response.data.requiresDoctor,
+              emergency: response.data.emergency,
+              nextSteps: response.data.nextSteps,
+              smsResponse: response.data.smsResponse
+            };
 
-        setMessages(prev => [...prev, assistantMessage]);
-        
-        // Show SMS option if offline response available
-        if (response.data.smsResponse) {
-          setSmsResponse(response.data.smsResponse);
-          setShowSMSModal(true);
+            setMessages(prev => [...prev, assistantMessage]);
+            
+            // Show SMS option if offline response available
+            if (response.data.smsResponse) {
+              setSmsResponse(response.data.smsResponse);
+              setShowSMSModal(true);
+            }
+            
+            // Speak the response
+            speakText(response.data.message);
+            return;
+          }
+        } catch (apiError) {
+          console.log('API not available, using offline response:', apiError.message);
         }
-        
-        // Speak the response
-        speakText(response.data.message);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      // Show offline response
+      
+      // Fallback to offline response
       const offlineResponse = getOfflineResponse(message);
       const assistantMessage = {
         id: Date.now() + 1,
@@ -259,6 +309,24 @@ const HealthAssistant = () => {
       setShowSMSModal(true);
       
       speakText(offlineResponse);
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Final fallback response
+      const fallbackResponse = selectedLanguage === 'hindi' ? 
+        'मुझे खेद है, मैं आपकी सहायता नहीं कर सकता। कृपया बाद में पुनः प्रयास करें।' :
+        selectedLanguage === 'punjabi' ?
+        'ਮੈਨੂੰ ਅਫ਼ਸੋਸ ਹੈ, ਮੈਂ ਤੁਹਾਡੀ ਮਦਦ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।' :
+        'I apologize, I cannot help you right now. Please try again later.';
+        
+      const assistantMessage = {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: fallbackResponse,
+        timestamp: new Date(),
+        isOffline: true
+      };
+      setMessages(prev => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -481,6 +549,18 @@ const HealthAssistant = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border h-96 overflow-y-auto">
               <div className="p-4 space-y-4">
+                {isLoading && messages.length === 0 && (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="text-center">
+                      <div className="loading-spinner mx-auto mb-4"></div>
+                      <p className="text-gray-600">
+                        {selectedLanguage === 'hindi' ? 'AI सहायक को शुरू कर रहे हैं...' :
+                         selectedLanguage === 'punjabi' ? 'AI ਸਹਾਇਕ ਨੂੰ ਸ਼ੁਰੂ ਕਰ ਰਹੇ ਹਾਂ...' :
+                         'Starting AI Assistant...'}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {messages.map((message) => (
                   <div
                     key={message.id}
