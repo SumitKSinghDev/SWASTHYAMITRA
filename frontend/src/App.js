@@ -2,6 +2,16 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+
+// Context Providers
+import {
+  ThemeProvider,
+  NotificationProvider,
+  VideoCallProvider,
+  HealthAssistantProvider,
+  AppointmentProvider
+} from './contexts';
+
 // Layout Components
 import Layout from './components/Layout/Layout';
 import AuthLayout from './components/Layout/AuthLayout';
@@ -76,8 +86,13 @@ function App() {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   return (
-      <div className="App">
-        <Routes>
+    <ThemeProvider>
+      <NotificationProvider>
+        <VideoCallProvider>
+          <HealthAssistantProvider>
+            <AppointmentProvider>
+              <div className="App">
+                <Routes>
         {/* Public Routes */}
         <Route path="/auth" element={<AuthLayout />}>
           <Route path="login" element={<Login />} />
@@ -218,7 +233,12 @@ function App() {
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+              </div>
+            </AppointmentProvider>
+          </HealthAssistantProvider>
+        </VideoCallProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 
