@@ -60,14 +60,14 @@ const HealthAssistant = () => {
     if (language && language !== selectedLanguage) {
       setSelectedLanguage(language);
     }
-  }, [language, selectedLanguage]);
+  }, [language]); // Removed selectedLanguage from dependencies
 
-  // Ensure selectedLanguage is always valid
+  // Ensure selectedLanguage is always valid - only run once on mount
   useEffect(() => {
     if (!selectedLanguage || !commonSymptoms[selectedLanguage]) {
       setSelectedLanguage('en');
     }
-  }, [selectedLanguage]);
+  }, []); // Empty dependency array - only run on mount
 
   // Handle language change
   const handleLanguageChange = (newLanguage) => {
@@ -129,6 +129,7 @@ const HealthAssistant = () => {
     }
   };
 
+  // Initialize speech recognition and synthesis - only run once
   useEffect(() => {
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -136,9 +137,6 @@ const HealthAssistant = () => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      const currentLanguage = selectedLanguage || 'en';
-      recognitionRef.current.lang = currentLanguage === 'hi' ? 'hi-IN' : 
-                                   currentLanguage === 'pa' ? 'pa-IN' : 'en-US';
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -163,14 +161,25 @@ const HealthAssistant = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Start conversation
-    startConversation();
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []); // Empty dependency array - only run once
+
+  // Update speech recognition language when selectedLanguage changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      const currentLanguage = selectedLanguage || 'en';
+      recognitionRef.current.lang = currentLanguage === 'hi' ? 'hi-IN' : 
+                                   currentLanguage === 'pa' ? 'pa-IN' : 'en-US';
+    }
   }, [selectedLanguage]);
+
+  // Start conversation only once on mount
+  useEffect(() => {
+    startConversation();
+  }, []); // Empty dependency array - only run once on mount
 
   useEffect(() => {
     scrollToBottom();
@@ -181,6 +190,13 @@ const HealthAssistant = () => {
   };
 
   const startConversation = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoading) {
+      console.log('startConversation: Already loading, skipping...');
+      return;
+    }
+    
+    console.log('startConversation: Starting conversation...');
     try {
       setIsLoading(true);
       
@@ -200,6 +216,7 @@ const HealthAssistant = () => {
             timestamp: new Date(),
             showVoiceMenu: true
           };
+          console.log('startConversation: Setting initial message from API:', initialMessage);
           setMessages([initialMessage]);
           
           // Load medicine reminders if authenticated
@@ -213,6 +230,7 @@ const HealthAssistant = () => {
       }
       
       // Fallback: Show welcome message even if API fails
+      console.log('startConversation: Using fallback welcome message...');
       const welcomeMessages = {
         en: "Hello! I'm your AI Health Assistant. I'm here to help you with health-related questions, symptom checking, and general health guidance. How can I assist you today?",
         hi: "नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। मैं यहां आपकी स्वास्थ्य संबंधी प्रश्नों, लक्षण जांच और सामान्य स्वास्थ्य मार्गदर्शन में मदद के लिए हूं। आज मैं आपकी कैसे सहायता कर सकता हूं?",
@@ -227,6 +245,7 @@ const HealthAssistant = () => {
         showVoiceMenu: true,
         isOffline: true
       };
+      console.log('startConversation: Setting fallback initial message:', initialMessage);
       setMessages([initialMessage]);
       
       // Load medicine reminders if authenticated
@@ -249,8 +268,10 @@ const HealthAssistant = () => {
         showVoiceMenu: true,
         isOffline: true
       };
+      console.log('startConversation: Setting final fallback message:', fallbackMessage);
       setMessages([fallbackMessage]);
     } finally {
+      console.log('startConversation: Finished, setting loading to false');
       setIsLoading(false);
     }
   };
@@ -267,7 +288,7 @@ const HealthAssistant = () => {
   };
 
   const sendMessage = async (message = inputMessage) => {
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return; // Prevent multiple simultaneous calls
 
     const userMessage = {
       id: Date.now(),
@@ -903,3 +924,5 @@ const HealthAssistant = () => {
 };
 
 export default HealthAssistant;
+
+
