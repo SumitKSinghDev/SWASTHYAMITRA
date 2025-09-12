@@ -59,7 +59,7 @@ const Sidebar = () => {
             current: location.pathname === '/patient/appointments',
           },
           {
-            name: 'Video Call',
+            name: t('video_call'),
             href: '/patient/video-call',
             icon: Video,
             current: location.pathname === '/patient/video-call',
@@ -77,7 +77,7 @@ const Sidebar = () => {
             current: location.pathname === '/patient/health-records',
           },
           {
-            name: 'Medicine Orders',
+            name: t('medicine_orders'),
             href: '/patient/medicine-orders',
             icon: PackageIcon,
             current: location.pathname === '/patient/medicine-orders',
@@ -88,31 +88,31 @@ const Sidebar = () => {
         return [
           ...baseItems,
           {
-            name: 'Appointments',
+            name: t('appointments'),
             href: '/doctor/appointments',
             icon: Calendar,
             current: location.pathname === '/doctor/appointments',
           },
           {
-            name: 'Video Consultation',
+            name: t('video_consultation'),
             href: '/doctor/video-consultation',
             icon: Video,
             current: location.pathname === '/doctor/video-consultation',
           },
           {
-            name: 'Prescriptions',
+            name: t('prescriptions'),
             href: '/doctor/prescriptions',
             icon: FileText,
             current: location.pathname === '/doctor/prescriptions',
           },
           {
-            name: 'Patients',
+            name: t('patients'),
             href: '/doctor/patients',
             icon: Users,
             current: location.pathname === '/doctor/patients',
           },
           {
-            name: 'Schedule',
+            name: t('schedule'),
             href: '/doctor/schedule',
             icon: Calendar,
             current: location.pathname === '/doctor/schedule',
@@ -123,19 +123,19 @@ const Sidebar = () => {
         return [
           ...baseItems,
           {
-            name: 'Patients',
+            name: t('patients'),
             href: '/asha/patients',
             icon: Users,
             current: location.pathname === '/asha/patients',
           },
           {
-            name: 'Register Patient',
+            name: t('register_patient'),
             href: '/asha/patients/register',
             icon: UserPlus,
             current: location.pathname === '/asha/patients/register',
           },
           {
-            name: 'Appointments',
+            name: t('appointments'),
             href: '/asha/appointments',
             icon: Calendar,
             current: location.pathname === '/asha/appointments',
@@ -146,13 +146,13 @@ const Sidebar = () => {
         return [
           ...baseItems,
           {
-            name: 'Prescriptions',
+            name: t('prescriptions'),
             href: '/pharmacy/prescriptions',
             icon: FileText,
             current: location.pathname === '/pharmacy/prescriptions',
           },
           {
-            name: 'Inventory',
+            name: t('inventory'),
             href: '/pharmacy/inventory',
             icon: PackageIcon,
             current: location.pathname === '/pharmacy/inventory',
@@ -163,25 +163,25 @@ const Sidebar = () => {
         return [
           ...baseItems,
           {
-            name: 'Users',
+            name: t('users'),
             href: '/admin/users',
             icon: Users,
             current: location.pathname === '/admin/users',
           },
           {
-            name: 'Appointments',
+            name: t('appointments'),
             href: '/admin/appointments',
             icon: Calendar,
             current: location.pathname === '/admin/appointments',
           },
           {
-            name: 'Prescriptions',
+            name: t('prescriptions'),
             href: '/admin/prescriptions',
             icon: FileText,
             current: location.pathname === '/admin/prescriptions',
           },
           {
-            name: 'Reports',
+            name: t('reports'),
             href: '/admin/reports',
             icon: BarChart3,
             current: location.pathname === '/admin/reports',

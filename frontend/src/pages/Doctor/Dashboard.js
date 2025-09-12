@@ -1,7 +1,9 @@
 import React from 'react';
 import { Calendar, Users, FileText, Video, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const DoctorDashboard = () => {
+  const { t } = useTranslation();
   const stats = {
     todayAppointments: 0,
     upcoming: 0,
@@ -26,8 +28,8 @@ const DoctorDashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Doctor Dashboard</h1>
-        <p className="text-gray-600">Overview of your appointments, patients, and tasks</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('doctor_dashboard')}</h1>
+        <p className="text-gray-600">{t('doctor_dashboard_description')}</p>
       </div>
 
       {/* Stats */}
@@ -39,7 +41,7 @@ const DoctorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
-              <p className="text-gray-600">Today Appointments</p>
+              <p className="text-gray-600">{t('today_appointments')}</p>
             </div>
           </div>
         </div>
@@ -50,7 +52,7 @@ const DoctorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{stats.patientsThisMonth}</p>
-              <p className="text-gray-600">Patients this month</p>
+              <p className="text-gray-600">{t('patients_this_month')}</p>
             </div>
           </div>
         </div>
@@ -61,7 +63,7 @@ const DoctorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{stats.pendingPrescriptions}</p>
-              <p className="text-gray-600">Pending Prescriptions</p>
+              <p className="text-gray-600">{t('pending_prescriptions')}</p>
             </div>
           </div>
         </div>
@@ -72,7 +74,7 @@ const DoctorDashboard = () => {
             </div>
             <div className="ml-4">
               <p className="text-2xl font-bold text-gray-900">{stats.upcoming}</p>
-              <p className="text-gray-600">Upcoming Calls</p>
+              <p className="text-gray-600">{t('upcoming_calls')}</p>
             </div>
           </div>
         </div>
@@ -81,11 +83,11 @@ const DoctorDashboard = () => {
       {/* Today Appointments */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Today's Appointments</h3>
+          <h3 className="card-title">{t('todays_appointments')}</h3>
         </div>
         <div className="card-content">
           {todayAppointments.length === 0 ? (
-            <p className="text-sm text-gray-600">No appointments yet.</p>
+            <p className="text-sm text-gray-600">{t('no_appointments_yet')}</p>
           ) : (
             <div className="divide-y divide-gray-100">
               {todayAppointments.map(appt => (
@@ -104,8 +106,8 @@ const DoctorDashboard = () => {
                   </div>
                   <div className="flex items-center space-x-3">
                     {getStatusChip(appt.status)}
-                    <button className="btn btn-outline btn-sm">View</button>
-                    <button className="btn btn-primary btn-sm">Start</button>
+                    <button className="btn btn-outline btn-sm">{t('view')}</button>
+                    <button className="btn btn-primary btn-sm">{t('start')}</button>
                   </div>
                 </div>
               ))}
@@ -117,13 +119,13 @@ const DoctorDashboard = () => {
       {/* Quick Actions */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Quick Actions</h3>
+          <h3 className="card-title">{t('quick_actions')}</h3>
         </div>
         <div className="card-content grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="btn btn-outline w-full">New Prescription</button>
-          <button className="btn btn-outline w-full">Schedule Slot</button>
-          <button className="btn btn-outline w-full">Create Call</button>
-          <button className="btn btn-outline w-full">View Reports</button>
+          <button className="btn btn-outline w-full">{t('new_prescription')}</button>
+          <button className="btn btn-outline w-full">{t('schedule_slot')}</button>
+          <button className="btn btn-outline w-full">{t('create_call')}</button>
+          <button className="btn btn-outline w-full">{t('view_reports')}</button>
         </div>
       </div>
     </div>

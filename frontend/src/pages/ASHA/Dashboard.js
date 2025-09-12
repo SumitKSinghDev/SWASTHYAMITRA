@@ -45,10 +45,10 @@ const AshaDashboard = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {user.firstName}!
+          {t('welcome_back')}, {user.firstName}!
         </h1>
         <p className="text-blue-100">
-          ASHA Worker - {user.area} | {user.village}
+          {t('asha_worker')} - {user.area} | {user.village}
         </p>
         <div className="flex items-center mt-2 text-blue-100">
           <MapPin size={16} className="mr-1" />
@@ -65,7 +65,7 @@ const AshaDashboard = () => {
                 <Users size={24} className="text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Patients</p>
+                <p className="text-sm font-medium text-gray-600">{t('total_patients')}</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalPatients}</p>
               </div>
             </div>
@@ -79,7 +79,7 @@ const AshaDashboard = () => {
                 <UserPlus size={24} className="text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">New This Month</p>
+                <p className="text-sm font-medium text-gray-600">{t('new_this_month')}</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.newPatientsThisMonth}</p>
               </div>
             </div>
@@ -93,7 +93,7 @@ const AshaDashboard = () => {
                 <Calendar size={24} className="text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Appointments</p>
+                <p className="text-sm font-medium text-gray-600">{t('appointments')}</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.appointmentsBooked}</p>
               </div>
             </div>
@@ -107,7 +107,7 @@ const AshaDashboard = () => {
                 <QrCode size={24} className="text-orange-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">NABHA Cards</p>
+                <p className="text-sm font-medium text-gray-600">{t('nabha_cards')}</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.nabhaCardsGenerated}</p>
               </div>
             </div>
@@ -118,7 +118,7 @@ const AshaDashboard = () => {
       {/* Quick Actions */}
       <div className="card">
         <div className="card-header">
-          <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('quick_actions')}</h2>
         </div>
         <div className="card-content">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -128,8 +128,8 @@ const AshaDashboard = () => {
             >
               <UserPlus size={24} className="text-blue-600 mr-3" />
               <div>
-                <h3 className="font-medium text-gray-900">Register Patient</h3>
-                <p className="text-sm text-gray-600">Add new offline patient</p>
+                <h3 className="font-medium text-gray-900">{t('register_patient')}</h3>
+                <p className="text-sm text-gray-600">{t('add_new_offline_patient')}</p>
               </div>
             </Link>
 
@@ -139,8 +139,8 @@ const AshaDashboard = () => {
             >
               <Users size={24} className="text-green-600 mr-3" />
               <div>
-                <h3 className="font-medium text-gray-900">View Patients</h3>
-                <p className="text-sm text-gray-600">Manage patient records</p>
+                <h3 className="font-medium text-gray-900">{t('view_patients')}</h3>
+                <p className="text-sm text-gray-600">{t('manage_patient_records')}</p>
               </div>
             </Link>
 
@@ -150,8 +150,8 @@ const AshaDashboard = () => {
             >
               <Calendar size={24} className="text-purple-600 mr-3" />
               <div>
-                <h3 className="font-medium text-gray-900">Book Appointment</h3>
-                <p className="text-sm text-gray-600">Schedule consultations</p>
+                <h3 className="font-medium text-gray-900">{t('book_appointment')}</h3>
+                <p className="text-sm text-gray-600">{t('schedule_consultations')}</p>
               </div>
             </Link>
           </div>
@@ -162,17 +162,17 @@ const AshaDashboard = () => {
         {/* Recent Patients */}
         <div className="card">
           <div className="card-header">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Patients</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('recent_patients')}</h2>
             <Link
               to="/asha/patients"
               className="text-sm text-blue-600 hover:text-blue-500"
             >
-              View all
+              {t('view_all')}
             </Link>
           </div>
           <div className="card-content">
             {recentPatients.length === 0 ? (
-              <p className="text-sm text-gray-600">No recent patients yet.</p>
+              <p className="text-sm text-gray-600">{t('no_recent_patients_yet')}</p>
             ) : (
               <div className="space-y-4">
                 {recentPatients.map((patient) => (
@@ -207,17 +207,17 @@ const AshaDashboard = () => {
         {/* Upcoming Appointments */}
         <div className="card">
           <div className="card-header">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('upcoming_appointments')}</h2>
             <Link
               to="/asha/appointments"
               className="text-sm text-blue-600 hover:text-blue-500"
             >
-              View all
+              {t('view_all')}
             </Link>
           </div>
           <div className="card-content">
             {upcomingAppointments.length === 0 ? (
-              <p className="text-sm text-gray-600">No upcoming appointments.</p>
+              <p className="text-sm text-gray-600">{t('no_upcoming_appointments')}</p>
             ) : (
               <div className="space-y-4">
                 {upcomingAppointments.map((appointment) => (

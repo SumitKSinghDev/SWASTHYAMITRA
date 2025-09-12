@@ -104,7 +104,7 @@ const PatientDashboard = () => {
           <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
             <PackageIcon className="w-6 h-6 text-orange-600" />
           </div>
-          <p className="text-sm font-semibold text-gray-900">Medicine Orders</p>
+          <p className="text-sm font-semibold text-gray-900">{t('medicine_orders')}</p>
         </Link>
       </div>
 
@@ -113,7 +113,7 @@ const PatientDashboard = () => {
         <div className="stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="stats-label">Total Appointments</p>
+              <p className="stats-label">{t('total_appointments')}</p>
               <p className="stats-value">{stats.totalAppointments}</p>
             </div>
             <Calendar className="w-8 h-8 text-primary-600" />
@@ -123,7 +123,7 @@ const PatientDashboard = () => {
         <div className="stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="stats-label">Upcoming</p>
+              <p className="stats-label">{t('upcoming')}</p>
               <p className="stats-value">{stats.upcomingAppointments}</p>
             </div>
             <Clock className="w-8 h-8 text-yellow-600" />
@@ -133,7 +133,7 @@ const PatientDashboard = () => {
         <div className="stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="stats-label">Prescriptions</p>
+              <p className="stats-label">{t('prescriptions')}</p>
               <p className="stats-value">{stats.prescriptions}</p>
             </div>
             <FileText className="w-8 h-8 text-green-600" />
@@ -143,7 +143,7 @@ const PatientDashboard = () => {
         <div className="stats-card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="stats-label">Health Records</p>
+              <p className="stats-label">{t('health_records')}</p>
               <p className="stats-value">{stats.healthRecords}</p>
             </div>
             <Heart className="w-8 h-8 text-red-600" />
@@ -156,12 +156,12 @@ const PatientDashboard = () => {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{t('upcoming_appointments')}</h3>
               <Link
                 to="/patient/appointments"
                 className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
               >
-                View all
+                {t('view_all')}
               </Link>
             </div>
           </div>
@@ -193,12 +193,12 @@ const PatientDashboard = () => {
         <div className="card">
           <div className="card-header">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">Recent Prescriptions</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{t('recent_prescriptions')}</h3>
               <Link
                 to="/patient/prescriptions"
                 className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
               >
-                View all
+                {t('view_all')}
               </Link>
             </div>
           </div>
@@ -234,12 +234,12 @@ const PatientDashboard = () => {
       {/* NABHA Card Preview */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Your NABHA Health Card</h3>
+          <h3 className="card-title">{t('your_nabha_health_card')}</h3>
         </div>
         <div className="card-content">
           <div className="nabha-card">
             <div className="nabha-card-header">
-              <h4 className="nabha-card-title">NABHA Health Card</h4>
+              <h4 className="nabha-card-title">{t('nabha_health_card')}</h4>
               <span className="nabha-card-id">NABHA123456</span>
             </div>
             <div className="flex items-center justify-between">
@@ -258,7 +258,7 @@ const PatientDashboard = () => {
                 to="/patient/nabha-card"
                 className="btn btn-outline btn-sm"
               >
-                View Full Card
+                {t('view_full_card')}
               </Link>
             </div>
           </div>
