@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../hooks/useTranslation';
+import { setLanguage } from '../../store/slices/uiSlice';
 import axios from 'axios';
 import SMSService from '../../components/HealthAssistant/SMSService';
 import { 
@@ -22,12 +24,15 @@ import {
 
 const HealthAssistant = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { language } = useSelector((state) => state.ui);
+  const { t } = useTranslation();
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('english');
+  const [selectedLanguage, setSelectedLanguage] = useState(language || 'en');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -45,13 +50,33 @@ const HealthAssistant = () => {
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
   const languages = [
-    { code: 'english', name: 'English', flag: '🇺🇸' },
-    { code: 'hindi', name: 'हिंदी', flag: '🇮🇳' },
-    { code: 'punjabi', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳' }
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
+    { code: 'pa', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳' }
   ];
 
+  // Sync language state with Redux
+  useEffect(() => {
+    if (language && language !== selectedLanguage) {
+      setSelectedLanguage(language);
+    }
+  }, [language, selectedLanguage]);
+
+  // Ensure selectedLanguage is always valid
+  useEffect(() => {
+    if (!selectedLanguage || !commonSymptoms[selectedLanguage]) {
+      setSelectedLanguage('en');
+    }
+  }, [selectedLanguage]);
+
+  // Handle language change
+  const handleLanguageChange = (newLanguage) => {
+    setSelectedLanguage(newLanguage);
+    dispatch(setLanguage(newLanguage));
+  };
+
   const commonSymptoms = {
-    english: [
+    en: [
       { id: 'fever', name: 'Fever', icon: '🌡️' },
       { id: 'cough', name: 'Cough', icon: '🤧' },
       { id: 'headache', name: 'Headache', icon: '🤕' },
@@ -59,7 +84,7 @@ const HealthAssistant = () => {
       { id: 'cold', name: 'Cold', icon: '😷' },
       { id: 'fatigue', name: 'Fatigue', icon: '😴' }
     ],
-    hindi: [
+    hi: [
       { id: 'fever', name: 'बुखार', icon: '🌡️' },
       { id: 'cough', name: 'खांसी', icon: '🤧' },
       { id: 'headache', name: 'सिरदर्द', icon: '🤕' },
@@ -67,7 +92,7 @@ const HealthAssistant = () => {
       { id: 'cold', name: 'सर्दी', icon: '😷' },
       { id: 'fatigue', name: 'थकान', icon: '😴' }
     ],
-    punjabi: [
+    pa: [
       { id: 'fever', name: 'ਤਾਪ', icon: '🌡️' },
       { id: 'cough', name: 'ਖੰਘ', icon: '🤧' },
       { id: 'headache', name: 'ਸਿਰ ਦਰਦ', icon: '🤕' },
@@ -78,7 +103,7 @@ const HealthAssistant = () => {
   };
 
   const offlineResponses = {
-    english: {
+    en: {
       fever: "High fever? Take fever medicine, cool compress. See doctor if >103°F or persists >2 days.",
       cough: "Persistent cough? Drink warm fluids, avoid cold. See doctor if lasts >1 week.",
       headache: "Severe headache? Rest in dark room, avoid screens. See doctor if severe or sudden.",
@@ -86,7 +111,7 @@ const HealthAssistant = () => {
       cold: "Common cold? Rest, warm fluids, steam. See doctor if symptoms worsen or persist >1 week.",
       emergency: "EMERGENCY! Call ambulance immediately. Go to nearest hospital."
     },
-    hindi: {
+    hi: {
       fever: "तेज बुखार? बुखार की दवा लें, ठंडा सेक। 103°F से अधिक या 2 दिन से अधिक रहने पर डॉक्टर से मिलें।",
       cough: "लगातार खांसी? गर्म तरल पिएं, ठंड से बचें। 1 सप्ताह से अधिक रहने पर डॉक्टर से मिलें।",
       headache: "गंभीर सिरदर्द? अंधेरे कमरे में आराम करें, स्क्रीन से बचें। गंभीर या अचानक होने पर डॉक्टर से मिलें।",
@@ -94,7 +119,7 @@ const HealthAssistant = () => {
       cold: "सामान्य सर्दी? आराम करें, गर्म तरल पिएं, भाप लें। लक्षण बिगड़ने या 1 सप्ताह से अधिक रहने पर डॉक्टर से मिलें।",
       emergency: "आपातकाल! तुरंत एम्बुलेंस बुलाएं। निकटतम अस्पताल जाएं।"
     },
-    punjabi: {
+    pa: {
       fever: "ਤੇਜ਼ ਤਾਪ? ਤਾਪ ਦੀ ਦਵਾਈ ਲਓ, ਠੰਡਾ ਸੇਕ। 103°F ਤੋਂ ਵੱਧ ਜਾਂ 2 ਦਿਨ ਤੋਂ ਵੱਧ ਰਹਿਣ ਤੇ ਡਾਕਟਰ ਨੂੰ ਮਿਲੋ।",
       cough: "ਲਗਾਤਾਰ ਖੰਘ? ਗਰਮ ਤਰਲ ਪੀਓ, ਠੰਡ ਤੋਂ ਬਚੋ। 1 ਹਫ਼ਤੇ ਤੋਂ ਵੱਧ ਰਹਿਣ ਤੇ ਡਾਕਟਰ ਨੂੰ ਮਿਲੋ।",
       headache: "ਗੰਭੀਰ ਸਿਰ ਦਰਦ? ਹਨੇਰੇ ਕਮਰੇ ਵਿੱਚ ਆਰਾਮ ਕਰੋ, ਸਕ੍ਰੀਨ ਤੋਂ ਬਚੋ। ਗੰਭੀਰ ਜਾਂ ਅਚਾਨਕ ਹੋਣ ਤੇ ਡਾਕਟਰ ਨੂੰ ਮਿਲੋ।",
@@ -111,8 +136,9 @@ const HealthAssistant = () => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = selectedLanguage === 'hindi' ? 'hi-IN' : 
-                                   selectedLanguage === 'punjabi' ? 'pa-IN' : 'en-US';
+      const currentLanguage = selectedLanguage || 'en';
+      recognitionRef.current.lang = currentLanguage === 'hi' ? 'hi-IN' : 
+                                   currentLanguage === 'pa' ? 'pa-IN' : 'en-US';
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -188,15 +214,15 @@ const HealthAssistant = () => {
       
       // Fallback: Show welcome message even if API fails
       const welcomeMessages = {
-        english: "Hello! I'm your AI Health Assistant. I'm here to help you with health-related questions, symptom checking, and general health guidance. How can I assist you today?",
-        hindi: "नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। मैं यहां आपकी स्वास्थ्य संबंधी प्रश्नों, लक्षण जांच और सामान्य स्वास्थ्य मार्गदर्शन में मदद के लिए हूं। आज मैं आपकी कैसे सहायता कर सकता हूं?",
-        punjabi: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ AI ਸਿਹਤ ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਇੱਥੇ ਤੁਹਾਡੇ ਸਿਹਤ ਸੰਬੰਧੀ ਸਵਾਲਾਂ, ਲੱਛਣ ਜਾਂਚ ਅਤੇ ਆਮ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਵਿੱਚ ਮਦਦ ਲਈ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਸਹਾਇਤਾ ਕਰ ਸਕਦਾ ਹਾਂ?"
+        en: "Hello! I'm your AI Health Assistant. I'm here to help you with health-related questions, symptom checking, and general health guidance. How can I assist you today?",
+        hi: "नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। मैं यहां आपकी स्वास्थ्य संबंधी प्रश्नों, लक्षण जांच और सामान्य स्वास्थ्य मार्गदर्शन में मदद के लिए हूं। आज मैं आपकी कैसे सहायता कर सकता हूं?",
+        pa: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ AI ਸਿਹਤ ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਇੱਥੇ ਤੁਹਾਡੇ ਸਿਹਤ ਸੰਬੰਧੀ ਸਵਾਲਾਂ, ਲੱਛਣ ਜਾਂਚ ਅਤੇ ਆਮ ਸਿਹਤ ਮਾਰਗਦਰਸ਼ਨ ਵਿੱਚ ਮਦਦ ਲਈ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੀ ਕਿਵੇਂ ਸਹਾਇਤਾ ਕਰ ਸਕਦਾ ਹਾਂ?"
       };
       
       const initialMessage = {
         id: Date.now(),
         type: 'assistant',
-        content: welcomeMessages[selectedLanguage] || welcomeMessages.english,
+        content: welcomeMessages[selectedLanguage] || welcomeMessages.en,
         timestamp: new Date(),
         showVoiceMenu: true,
         isOffline: true
@@ -313,9 +339,10 @@ const HealthAssistant = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       // Final fallback response
-      const fallbackResponse = selectedLanguage === 'hindi' ? 
+      const currentLanguage = selectedLanguage || 'en';
+      const fallbackResponse = currentLanguage === 'hi' ? 
         'मुझे खेद है, मैं आपकी सहायता नहीं कर सकता। कृपया बाद में पुनः प्रयास करें।' :
-        selectedLanguage === 'punjabi' ?
+        currentLanguage === 'pa' ?
         'ਮੈਨੂੰ ਅਫ਼ਸੋਸ ਹੈ, ਮੈਂ ਤੁਹਾਡੀ ਮਦਦ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।' :
         'I apologize, I cannot help you right now. Please try again later.';
         
@@ -334,35 +361,72 @@ const HealthAssistant = () => {
 
   const getOfflineResponse = (message) => {
     const lowerMessage = message.toLowerCase();
+    const currentLanguage = selectedLanguage || 'en';
     
     // Check for emergency keywords
     const emergencyKeywords = ['emergency', 'serious', 'urgent', 'ambulance', 'hospital', 'गंभीर', 'जरूरी', 'ਗੰਭੀਰ', 'ਜ਼ਰੂਰੀ'];
     if (emergencyKeywords.some(keyword => lowerMessage.includes(keyword))) {
-      return offlineResponses[selectedLanguage].emergency;
+      return offlineResponses[currentLanguage]?.emergency || offlineResponses.en.emergency;
     }
 
     // Check for common symptoms
-    for (const [symptom, response] of Object.entries(offlineResponses[selectedLanguage])) {
+    for (const [symptom, response] of Object.entries(offlineResponses[currentLanguage] || offlineResponses.en)) {
       if (symptom !== 'emergency' && lowerMessage.includes(symptom)) {
         return response;
       }
     }
 
-    return selectedLanguage === 'hindi' ? 
+    return currentLanguage === 'hi' ? 
       'कृपया अपने लक्षणों का विस्तार से वर्णन करें। गंभीर लक्षणों के लिए तुरंत डॉक्टर से सलाह लें।' :
-      selectedLanguage === 'punjabi' ?
+      currentLanguage === 'pa' ?
       'ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਲੱਛਣਾਂ ਦਾ ਵਿਸਤਾਰ ਨਾਲ ਵਰਣਨ ਕਰੋ। ਗੰਭੀਰ ਲੱਛਣਾਂ ਲਈ ਤੁਰੰਤ ਡਾਕਟਰ ਨਾਲ ਸਲਾਹ ਲਓ।' :
       'Please describe your symptoms in detail. For serious symptoms, consult a doctor immediately.';
   };
 
   const speakText = (text) => {
-    if (synthRef.current && !isSpeaking) {
+    if (synthRef.current && !isSpeaking && text) {
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = selectedLanguage === 'hindi' ? 'hi-IN' : 
-                      selectedLanguage === 'punjabi' ? 'pa-IN' : 'en-US';
+      
+      // Set language with better fallback support
+      const getVoiceLanguage = () => {
+        const currentLanguage = selectedLanguage || 'en';
+        switch (currentLanguage) {
+          case 'hi':
+            return 'hi-IN'; // Hindi (India)
+          case 'pa':
+            return 'pa-IN'; // Punjabi (India) - fallback to Hindi if not available
+          case 'en':
+          default:
+            return 'en-US'; // English (US)
+        }
+      };
+
+      utterance.lang = getVoiceLanguage();
+      
+      // Set voice properties for better pronunciation
+      utterance.rate = 0.9; // Slightly slower for better understanding
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      // Try to find a voice that matches the language
+      const voices = synthRef.current.getVoices();
+      const currentLanguage = selectedLanguage || 'en';
+      const preferredVoice = voices.find(voice => 
+        voice.lang.startsWith(currentLanguage === 'hi' ? 'hi' : 
+                             currentLanguage === 'pa' ? 'hi' : 'en')
+      );
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+
       utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
+      utterance.onerror = (event) => {
+        console.warn('Speech synthesis error:', event.error);
+        setIsSpeaking(false);
+      };
+      
       synthRef.current.speak(utterance);
     }
   };
@@ -388,19 +452,19 @@ const HealthAssistant = () => {
 
   const handleVoiceMenuOption = (option) => {
     const menuOptions = {
-      english: {
+      en: {
         '1': 'symptom_checker',
         '2': 'faq',
         '3': 'medicine_reminder',
         '0': 'operator'
       },
-      hindi: {
+      hi: {
         '1': 'symptom_checker',
         '2': 'faq', 
         '3': 'medicine_reminder',
         '0': 'operator'
       },
-      punjabi: {
+      pa: {
         '1': 'symptom_checker',
         '2': 'faq',
         '3': 'medicine_reminder',
@@ -414,28 +478,28 @@ const HealthAssistant = () => {
       
       const modeMessages = {
         symptom_checker: {
-          english: "Please describe your symptoms. You can say things like fever, cough, headache, or stomach pain.",
-          hindi: "कृपया अपने लक्षण बताएं। आप बुखार, खांसी, सिरदर्द, या पेट दर्द जैसी चीजें कह सकते हैं।",
-          punjabi: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਲੱਛਣ ਦੱਸੋ। ਤੁਸੀਂ ਤਾਪ, ਖੰਘ, ਸਿਰ ਦਰਦ, ਜਾਂ ਪੇਟ ਦਰਦ ਵਰਗੀਆਂ ਚੀਜ਼ਾਂ ਕਹਿ ਸਕਦੇ ਹੋ।"
+          en: "Please describe your symptoms. You can say things like fever, cough, headache, or stomach pain.",
+          hi: "कृपया अपने लक्षण बताएं। आप बुखार, खांसी, सिरदर्द, या पेट दर्द जैसी चीजें कह सकते हैं।",
+          pa: "ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਲੱਛਣ ਦੱਸੋ। ਤੁਸੀਂ ਤਾਪ, ਖੰਘ, ਸਿਰ ਦਰਦ, ਜਾਂ ਪੇਟ ਦਰਦ ਵਰਗੀਆਂ ਚੀਜ਼ਾਂ ਕਹਿ ਸਕਦੇ ਹੋ।"
         },
         faq: {
-          english: "What would you like to know? You can ask about hospital timings, NABHA card, or medicine availability.",
-          hindi: "आप क्या जानना चाहते हैं? आप अस्पताल के समय, NABHA कार्ड, या दवा की उपलब्धता के बारे में पूछ सकते हैं।",
-          punjabi: "ਤੁਸੀਂ ਕੀ ਜਾਣਨਾ ਚਾਹੁੰਦੇ ਹੋ? ਤੁਸੀਂ ਹਸਪਤਾਲ ਦੇ ਸਮੇਂ, NABHA ਕਾਰਡ, ਜਾਂ ਦਵਾਈ ਦੀ ਉਪਲਬਧਤਾ ਬਾਰੇ ਪੁੱਛ ਸਕਦੇ ਹੋ।"
+          en: "What would you like to know? You can ask about hospital timings, NABHA card, or medicine availability.",
+          hi: "आप क्या जानना चाहते हैं? आप अस्पताल के समय, NABHA कार्ड, या दवा की उपलब्धता के बारे में पूछ सकते हैं।",
+          pa: "ਤੁਸੀਂ ਕੀ ਜਾਣਨਾ ਚਾਹੁੰਦੇ ਹੋ? ਤੁਸੀਂ ਹਸਪਤਾਲ ਦੇ ਸਮੇਂ, NABHA ਕਾਰਡ, ਜਾਂ ਦਵਾਈ ਦੀ ਉਪਲਬਧਤਾ ਬਾਰੇ ਪੁੱਛ ਸਕਦੇ ਹੋ।"
         },
         medicine_reminder: {
-          english: "Press 1 to set medicine reminder, Press 2 to check existing reminders, Press 3 to cancel reminder.",
-          hindi: "दवा याददाश्त सेट करने के लिए 1 दबाएं, मौजूदा याददाश्त जांचने के लिए 2 दबाएं, याददाश्त रद्द करने के लिए 3 दबाएं।",
-          punjabi: "ਦਵਾਈ ਯਾਦ ਸੈੱਟ ਕਰਨ ਲਈ 1 ਦਬਾਓ, ਮੌਜੂਦਾ ਯਾਦ ਜਾਂਚਣ ਲਈ 2 ਦਬਾਓ, ਯਾਦ ਰੱਦ ਕਰਨ ਲਈ 3 ਦਬਾਓ।"
+          en: "Press 1 to set medicine reminder, Press 2 to check existing reminders, Press 3 to cancel reminder.",
+          hi: "दवा याददाश्त सेट करने के लिए 1 दबाएं, मौजूदा याददाश्त जांचने के लिए 2 दबाएं, याददाश्त रद्द करने के लिए 3 दबाएं।",
+          pa: "ਦਵਾਈ ਯਾਦ ਸੈੱਟ ਕਰਨ ਲਈ 1 ਦਬਾਓ, ਮੌਜੂਦਾ ਯਾਦ ਜਾਂਚਣ ਲਈ 2 ਦਬਾਓ, ਯਾਦ ਰੱਦ ਕਰਨ ਲਈ 3 ਦਬਾਓ।"
         },
         operator: {
-          english: "Connecting you to our operator. Please wait...",
-          hindi: "आपको हमारे ऑपरेटर से जोड़ रहे हैं। कृपया प्रतीक्षा करें...",
-          punjabi: "ਤੁਹਾਨੂੰ ਸਾਡੇ ਓਪਰੇਟਰ ਨਾਲ ਜੋੜ ਰਹੇ ਹਾਂ। ਕਿਰਪਾ ਕਰਕੇ ਇੰਤਜ਼ਾਰ ਕਰੋ..."
+          en: "Connecting you to our operator. Please wait...",
+          hi: "आपको हमारे ऑपरेटर से जोड़ रहे हैं। कृपया प्रतीक्षा करें...",
+          pa: "ਤੁਹਾਨੂੰ ਸਾਡੇ ਓਪਰੇਟਰ ਨਾਲ ਜੋੜ ਰਹੇ ਹਾਂ। ਕਿਰਪਾ ਕਰਕੇ ਇੰਤਜ਼ਾਰ ਕਰੋ..."
         }
       };
 
-      const message = modeMessages[selectedMode]?.[selectedLanguage] || modeMessages[selectedMode]?.english;
+      const message = modeMessages[selectedMode]?.[selectedLanguage] || modeMessages[selectedMode]?.en;
       const assistantMessage = {
         id: Date.now(),
         type: 'assistant',
@@ -451,23 +515,23 @@ const HealthAssistant = () => {
 
   const getCommonFAQQuestions = () => {
     const questions = {
-      english: [
+      en: [
         { id: 'hospital_timing', text: 'What are the hospital timings?', icon: '🕒' },
         { id: 'nabha_card', text: 'How to create NABHA card?', icon: '🆔' },
         { id: 'medicine_availability', text: 'Is medicine available?', icon: '💊' }
       ],
-      hindi: [
+      hi: [
         { id: 'hospital_timing', text: 'अस्पताल के समय क्या हैं?', icon: '🕒' },
         { id: 'nabha_card', text: 'NABHA कार्ड कैसे बनाएं?', icon: '🆔' },
         { id: 'medicine_availability', text: 'दवा उपलब्ध है?', icon: '💊' }
       ],
-      punjabi: [
+      pa: [
         { id: 'hospital_timing', text: 'ਹਸਪਤਾਲ ਦੇ ਸਮੇਂ ਕੀ ਹਨ?', icon: '🕒' },
         { id: 'nabha_card', text: 'NABHA ਕਾਰਡ ਕਿਵੇਂ ਬਣਾਈਏ?', icon: '🆔' },
         { id: 'medicine_availability', text: 'ਦਵਾਈ ਉਪਲਬਧ ਹੈ?', icon: '💊' }
       ]
     };
-    return questions[selectedLanguage] || questions.english;
+    return questions[selectedLanguage] || questions.en;
   };
 
   const handleQuickAction = (action) => {
@@ -517,7 +581,7 @@ const HealthAssistant = () => {
               {/* Language Selector */}
               <select
                 value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
+                onChange={(e) => handleLanguageChange(e.target.value)}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm"
               >
                 {languages.map(lang => (
@@ -554,8 +618,8 @@ const HealthAssistant = () => {
                     <div className="text-center">
                       <div className="loading-spinner mx-auto mb-4"></div>
                       <p className="text-gray-600">
-                        {selectedLanguage === 'hindi' ? 'AI सहायक को शुरू कर रहे हैं...' :
-                         selectedLanguage === 'punjabi' ? 'AI ਸਹਾਇਕ ਨੂੰ ਸ਼ੁਰੂ ਕਰ ਰਹੇ ਹਾਂ...' :
+                        {(selectedLanguage || 'en') === 'hi' ? 'AI सहायक को शुरू कर रहे हैं...' :
+                         (selectedLanguage || 'en') === 'pa' ? 'AI ਸਹਾਇਕ ਨੂੰ ਸ਼ੁਰੂ ਕਰ ਰਹੇ ਹਾਂ...' :
                          'Starting AI Assistant...'}
                       </p>
                     </div>
@@ -599,8 +663,8 @@ const HealthAssistant = () => {
                       {message.showVoiceMenu && (
                         <div className="mt-3 space-y-2">
                           <p className="text-xs text-gray-600 mb-2">
-                            {selectedLanguage === 'hindi' ? 'वॉइस मेन्यू के लिए नंबर दबाएं:' :
-                             selectedLanguage === 'punjabi' ? 'ਵੌਇਸ ਮੇਨੂ ਲਈ ਨੰਬਰ ਦਬਾਓ:' :
+                            {(selectedLanguage || 'en') === 'hi' ? 'वॉइस मेन्यू के लिए नंबर दबाएं:' :
+                             (selectedLanguage || 'en') === 'pa' ? 'ਵੌਇਸ ਮੇਨੂ ਲਈ ਨੰਬਰ ਦਬਾਓ:' :
                              'Press number for voice menu:'}
                           </p>
                           <div className="grid grid-cols-2 gap-2">
@@ -609,8 +673,8 @@ const HealthAssistant = () => {
                               className="flex items-center space-x-2 p-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 text-sm"
                             >
                               <span className="font-bold">1</span>
-                              <span>{selectedLanguage === 'hindi' ? 'लक्षण जांच' :
-                                     selectedLanguage === 'punjabi' ? 'ਲੱਛਣ ਜਾਂਚ' :
+                              <span>{(selectedLanguage || 'en') === 'hi' ? 'लक्षण जांच' :
+                                     (selectedLanguage || 'en') === 'pa' ? 'ਲੱਛਣ ਜਾਂਚ' :
                                      'Symptom Checker'}</span>
                             </button>
                             <button
@@ -618,8 +682,8 @@ const HealthAssistant = () => {
                               className="flex items-center space-x-2 p-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100 text-sm"
                             >
                               <span className="font-bold">2</span>
-                              <span>{selectedLanguage === 'hindi' ? 'FAQ' :
-                                     selectedLanguage === 'punjabi' ? 'FAQ' :
+                              <span>{(selectedLanguage || 'en') === 'hi' ? 'FAQ' :
+                                     (selectedLanguage || 'en') === 'pa' ? 'FAQ' :
                                      'FAQ'}</span>
                             </button>
                             <button
@@ -627,8 +691,8 @@ const HealthAssistant = () => {
                               className="flex items-center space-x-2 p-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 text-sm"
                             >
                               <span className="font-bold">3</span>
-                              <span>{selectedLanguage === 'hindi' ? 'दवा याददाश्त' :
-                                     selectedLanguage === 'punjabi' ? 'ਦਵਾਈ ਯਾਦ' :
+                              <span>{(selectedLanguage || 'en') === 'hi' ? 'दवा याददाश्त' :
+                                     (selectedLanguage || 'en') === 'pa' ? 'ਦਵਾਈ ਯਾਦ' :
                                      'Medicine Reminder'}</span>
                             </button>
                             <button
@@ -636,8 +700,8 @@ const HealthAssistant = () => {
                               className="flex items-center space-x-2 p-2 bg-orange-50 text-orange-700 rounded-md hover:bg-orange-100 text-sm"
                             >
                               <span className="font-bold">0</span>
-                              <span>{selectedLanguage === 'hindi' ? 'ऑपरेटर' :
-                                     selectedLanguage === 'punjabi' ? 'ਓਪਰੇਟਰ' :
+                              <span>{(selectedLanguage || 'en') === 'hi' ? 'ऑपरेटर' :
+                                     (selectedLanguage || 'en') === 'pa' ? 'ਓਪਰੇਟਰ' :
                                      'Operator'}</span>
                             </button>
                           </div>
@@ -670,8 +734,8 @@ const HealthAssistant = () => {
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                   placeholder={
-                    selectedLanguage === 'hindi' ? 'अपने लक्षण बताएं...' :
-                    selectedLanguage === 'punjabi' ? 'ਆਪਣੇ ਲੱਛਣ ਦੱਸੋ...' :
+                    (selectedLanguage || 'en') === 'hi' ? 'अपने लक्षण बताएं...' :
+                    (selectedLanguage || 'en') === 'pa' ? 'ਆਪਣੇ ਲੱਛਣ ਦੱਸੋ...' :
                     'Describe your symptoms...'
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -718,12 +782,12 @@ const HealthAssistant = () => {
             {/* Common Symptoms */}
             <div className="bg-white rounded-lg shadow-sm border p-4">
               <h3 className="font-semibold text-gray-900 mb-3">
-                {selectedLanguage === 'hindi' ? 'सामान्य लक्षण' :
-                 selectedLanguage === 'punjabi' ? 'ਆਮ ਲੱਛਣ' :
+                {(selectedLanguage || 'en') === 'hi' ? 'सामान्य लक्षण' :
+                 (selectedLanguage || 'en') === 'pa' ? 'ਆਮ ਲੱਛਣ' :
                  'Common Symptoms'}
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {commonSymptoms[selectedLanguage].map((symptom) => (
+                {(commonSymptoms[selectedLanguage] || commonSymptoms.en).map((symptom) => (
                   <button
                     key={symptom.id}
                     onClick={() => handleSymptomClick(symptom)}
