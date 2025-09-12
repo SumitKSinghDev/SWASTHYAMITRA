@@ -15,12 +15,15 @@ import {
 
 import { logoutUser } from '../../store/slices/authSlice';
 import { toggleSidebar, setTheme } from '../../store/slices/uiSlice';
+import LanguageSelector from '../Common/LanguageSelector';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { sidebarOpen, theme } = useSelector((state) => state.ui);
+  const { t } = useTranslation();
   
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -95,8 +98,11 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           {/* Home link (always visible) */}
           <Link to="/" className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">
-            Home
+            {t('home')}
           </Link>
+
+          {/* Language Selector */}
+          <LanguageSelector variant="navbar" showLabel={false} />
 
           {/* Theme Toggle */}
           <button
