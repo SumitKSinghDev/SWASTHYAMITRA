@@ -15,6 +15,7 @@ const registerValidation = [
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('phone').matches(/^[6-9]\d{9}$/).withMessage('Valid 10-digit phone number is required'),
+  body('aadhaarNumber').matches(/^[0-9]{12}$/).withMessage('Valid 12-digit Aadhaar number is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   // Public registration only for patients
   body('role').isIn(['patient']).withMessage('Only patient signup is allowed')
@@ -40,7 +41,7 @@ router.post('/register', registerValidation, async (req, res) => {
       });
     }
 
-    const { firstName, lastName, email, phone, password, role, dateOfBirth, gender, address } = req.body;
+    const { firstName, lastName, email, phone, aadhaarNumber, password, role, dateOfBirth, gender, address } = req.body;
 
     // Enforce signup only for patients
     if (role !== 'patient') {
@@ -50,15 +51,26 @@ router.post('/register', registerValidation, async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Check if user already exists (email, phone, or Aadhaar)
     const existingUser = await User.findOne({
-      $or: [{ email }, { phone }]
+      $or: [{ email }, { phone }, { aadhaarNumber }]
     });
 
     if (existingUser) {
+      let errorMessage = 'You already have a NABHA Health Card. Please login.';
+      
+      // Provide specific error message based on what's already registered
+      if (existingUser.email === email) {
+        errorMessage = 'An account with this email already exists. Please login.';
+      } else if (existingUser.phone === phone) {
+        errorMessage = 'An account with this phone number already exists. Please login.';
+      } else if (existingUser.aadhaarNumber === aadhaarNumber) {
+        errorMessage = 'An account with this Aadhaar number already exists. One Aadhaar can only be used for one account.';
+      }
+
       return res.status(400).json({
         status: 'error',
-        message: 'You already have a NABHA Health Card. Please login.',
+        message: errorMessage,
         existingUser: {
           email: existingUser.email,
           phone: existingUser.phone,
@@ -73,6 +85,7 @@ router.post('/register', registerValidation, async (req, res) => {
       lastName,
       email,
       phone,
+      aadhaarNumber,
       password,
       role,
       dateOfBirth,

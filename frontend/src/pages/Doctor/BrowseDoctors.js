@@ -103,7 +103,7 @@ const BrowseDoctors = () => {
   const [selectedSymptom, setSelectedSymptom] = useState('');
   const [showSymptomSelector, setShowSymptomSelector] = useState(false);
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   const fetchDoctors = async (resetPage = false) => {
     try {

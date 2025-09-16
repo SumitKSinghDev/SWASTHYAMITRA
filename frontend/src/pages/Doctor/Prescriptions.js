@@ -34,7 +34,7 @@ const DoctorPrescriptions = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   const fetchPrescriptions = async (resetPage = false) => {
     try {
@@ -450,7 +450,7 @@ Generated on: ${new Date().toLocaleString()}
 export default DoctorPrescriptions;
 
 const PrescriptionForm = ({ onClose }) => {
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [patientNabhaId, setPatientNabhaId] = useState('');

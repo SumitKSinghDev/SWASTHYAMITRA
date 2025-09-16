@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ArrowRight, PlayCircle, ShieldCheck, Stethoscope, QrCode, MessageCircle, Syringe, MapPin, Pill, AlertTriangle } from 'lucide-react';
+import { ArrowRight, PlayCircle, ShieldCheck, Stethoscope, QrCode, Syringe, MapPin, Pill, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSelector from '../../components/Common/LanguageSelector';
 
@@ -19,9 +19,7 @@ const Home = () => {
     }
   };
 
-  const handleHealthAssistant = () => {
-    navigate('/health-assistant');
-  };
+  // Removed SymptoCare from home page (moved to Patient Dashboard)
 
   const handleVaccineBooking = () => {
     navigate('/vaccines');
@@ -91,26 +89,23 @@ const Home = () => {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link to="/auth/register" className="btn btn-primary group">
+            <Link to="/auth/register" className="btn btn-primary group px-6 py-3">
               {t('create_account')}
               <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <Link to="/auth/login" className="btn btn-outline">
+            <Link to="/auth/login" className="btn btn-primary group px-6 py-3">
               {t('sign_in')}
             </Link>
-            <button onClick={handleBookDoctor} className="btn btn-outline group">
+            <button onClick={handleBookDoctor} className="btn btn-primary group px-6 py-3">
               {t('book_doctor')}
               <ArrowRight size={16} className="ml-2 transition-transform group-hover:translate-x-0.5" />
             </button>
-            <button onClick={handleHealthAssistant} className="btn btn-outline group">
-              {t('ai_health_assistant')}
-              <MessageCircle size={16} className="ml-2" />
-            </button>
-            <button onClick={handleVaccineBooking} className="btn btn-outline group">
+            {/* SymptoCare button removed from Home (available after login in Patient Dashboard) */}
+            <button onClick={handleVaccineBooking} className="btn btn-primary group px-6 py-3">
               {t('book_vaccines')}
               <Syringe size={16} className="ml-2" />
             </button>
-            <Link to="/tutorials" className="btn btn-ghost inline-flex items-center">
+            <Link to="/tutorials" className="btn btn-primary group px-6 py-3">
               <PlayCircle size={18} className="mr-2" /> {t('learn_how_it_works')}
             </Link>
           </div>

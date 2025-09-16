@@ -37,7 +37,14 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
+      console.log('=== AUTH SLICE DEBUG ===');
+      console.log('API_BASE_URL:', API_BASE_URL);
+      console.log('Sending request to:', `${API_BASE_URL}/auth/register`);
+      console.log('User data:', userData);
+      
       const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+      console.log('Registration response:', response.data);
+      
       const { token, data } = response.data;
       
       // Store token in localStorage
@@ -48,8 +55,29 @@ export const registerUser = createAsyncThunk(
       
       return data;
     } catch (error) {
+      console.error('Registration error details:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      console.error('Error config:', error.config);
+      
+      // Handle different types of errors
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        return rejectWithValue('Network error. Please check your connection and try again.');
+      }
+      
+      if (error.response?.status === 400) {
+        return rejectWithValue(
+          error.response?.data?.message || 'Invalid data provided. Please check your information.'
+        );
+      }
+      
+      if (error.response?.status === 500) {
+        return rejectWithValue('Server error. Please try again later.');
+      }
+      
       return rejectWithValue(
-        error.response?.data?.message || 'Registration failed'
+        error.response?.data?.message || 'Registration failed. Please try again.'
       );
     }
   }

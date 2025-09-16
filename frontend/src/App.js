@@ -212,7 +212,7 @@ function App() {
         {/* Health Centers Map */}
         <Route path="/health-centers" element={<HealthCentersMap />} />
 
-        {/* AI Health Assistant */}
+        {/* SymptoCare */}
         <Route path="/health-assistant" element={<HealthAssistant />} />
 
         {/* Unified dashboard entry */}
@@ -232,7 +232,7 @@ function App() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
-        </Routes>
+                </Routes>
               </div>
             </AppointmentProvider>
           </HealthAssistantProvider>

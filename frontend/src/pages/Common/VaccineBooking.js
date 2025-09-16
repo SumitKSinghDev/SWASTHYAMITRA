@@ -55,7 +55,7 @@ const VaccineBooking = () => {
     }
   });
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Sample vaccines data (in real app, this would come from API)
   const sampleVaccines = [

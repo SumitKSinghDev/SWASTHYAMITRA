@@ -14,7 +14,7 @@ const PatientNabhaCard = () => {
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
   const { t } = useTranslation();
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Fetch patient prescriptions
   const fetchPrescriptions = async () => {

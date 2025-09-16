@@ -9,6 +9,7 @@ import {
   Clock, 
   Plus,
   QrCode,
+  MessageCircle,
   Package as PackageIcon
 } from 'lucide-react';
 
@@ -65,6 +66,16 @@ const PatientDashboard = () => {
             <Plus className="w-6 h-6 text-blue-600" />
           </div>
           <p className="text-sm font-semibold text-gray-900">{t('book_appointment')}</p>
+        </Link>
+
+        <Link
+          to="/health-assistant"
+          className="bg-white border border-gray-200 p-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 text-center group"
+        >
+          <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-200 transition-colors">
+            <MessageCircle className="w-6 h-6 text-indigo-600" />
+          </div>
+          <p className="text-sm font-semibold text-gray-900">{t('ai_health_assistant')}</p>
         </Link>
         
         <Link

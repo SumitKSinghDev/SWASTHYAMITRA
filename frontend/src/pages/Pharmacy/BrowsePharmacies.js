@@ -14,7 +14,7 @@ const BrowsePharmacies = () => {
   const [sort, setSort] = useState('rating');
   const [order, setOrder] = useState('desc');
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   const fetchPharmacies = async (resetPage = false) => {
     try {

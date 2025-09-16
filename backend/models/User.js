@@ -28,6 +28,13 @@ const userSchema = new mongoose.Schema({
     unique: true,
     match: [/^[6-9]\d{9}$/, 'Please enter a valid 10-digit phone number']
   },
+  aadhaarNumber: {
+    type: String,
+    required: [true, 'Aadhaar number is required'],
+    unique: true, // Ensures one Aadhaar per person (one-to-one relationship)
+    match: [/^[0-9]{12}$/, 'Please enter a valid 12-digit Aadhaar number'],
+    trim: true
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -156,5 +163,10 @@ userSchema.set('toJSON', {
     return ret;
   }
 });
+
+// Database indexes for performance and uniqueness enforcement
+userSchema.index({ aadhaarNumber: 1 }, { unique: true }); // One Aadhaar per person
+userSchema.index({ email: 1 }, { unique: true }); // One email per person
+userSchema.index({ phone: 1 }, { unique: true }); // One phone per person
 
 module.exports = mongoose.model('User', userSchema);

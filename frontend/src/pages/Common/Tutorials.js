@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../../hooks/useTranslation';
 import { 
   UserPlus, 
   Stethoscope, 
@@ -18,6 +19,8 @@ import {
 } from 'lucide-react';
 
 const Tutorials = () => {
+  const { t } = useTranslation();
+  
   const tutorials = [
     {
       id: 1,
@@ -111,11 +114,11 @@ const Tutorials = () => {
     },
     {
       id: 7,
-      title: 'AI Health Assistant',
+      title: t('ai_health_assistant'),
       icon: MessageCircle,
       description: 'Get instant health guidance and symptom checking',
       steps: [
-        'Access AI Health Assistant',
+        `Access ${t('ai_health_assistant')}`,
         'Select your language preference',
         'Describe your symptoms',
         'Get preliminary guidance',

@@ -5,9 +5,14 @@ const SMSService = ({ response, language, onClose }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Safety check - don't render if no response
+  if (!response) {
+    return null;
+  }
+
   const handleCopyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(response);
+      await navigator.clipboard.writeText(response || '');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -16,7 +21,7 @@ const SMSService = ({ response, language, onClose }) => {
   };
 
   const handleSendSMS = () => {
-    if (phoneNumber) {
+    if (phoneNumber && response) {
       const smsText = encodeURIComponent(response);
       const smsUrl = `sms:${phoneNumber}?body=${smsText}`;
       window.open(smsUrl);
@@ -74,11 +79,11 @@ const SMSService = ({ response, language, onClose }) => {
 
         <div className="bg-gray-50 rounded-lg p-3 mb-4">
           <p className="text-sm text-gray-800 font-mono break-words">
-            {response}
+            {response || 'No response available'}
           </p>
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500">
-              {response.length}/160 characters
+              {(response || '').length}/160 characters
             </span>
             <button
               onClick={handleCopyToClipboard}

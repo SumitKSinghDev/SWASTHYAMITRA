@@ -81,7 +81,7 @@ const PatientAppointments = () => {
         </div>
         <Link
           to="/patient/appointments/book"
-          className="btn btn-primary flex items-center space-x-2"
+          className="btn btn-primary group px-6 py-3"
         >
           <Plus size={16} />
           <span>Book Appointment</span>
@@ -281,7 +281,7 @@ const PatientAppointments = () => {
             </p>
             <Link
               to="/patient/appointments/book"
-              className="btn btn-primary"
+              className="btn btn-primary group px-6 py-3"
             >
               Book Your First Appointment
             </Link>

@@ -22,6 +22,7 @@ const Register = () => {
     role: 'patient',
     dateOfBirth: '',
     gender: '',
+    aadhaarNumber: '',
     address: {
       street: '',
       city: '',
@@ -40,6 +41,7 @@ const Register = () => {
 
   useEffect(() => {
     if (error) {
+      console.error('Registration error from Redux:', error);
       toast.error(error);
       dispatch(clearError());
     }
@@ -68,6 +70,18 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('=== REGISTRATION DEBUG ===');
+    console.log('Form data:', formData);
+    console.log('Form validation state:', {
+      firstName: !!formData.firstName,
+      lastName: !!formData.lastName,
+      email: !!formData.email,
+      phone: !!formData.phone,
+      aadhaarNumber: !!formData.aadhaarNumber,
+      password: !!formData.password,
+      confirmPassword: !!formData.confirmPassword
+    });
+    
     // Validation
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
@@ -79,10 +93,25 @@ const Register = () => {
       return;
     }
 
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.aadhaarNumber) {
       toast.error('Please fill in all required fields');
       return;
     }
+
+    // Validate Aadhaar number format
+    if (!/^[0-9]{12}$/.test(formData.aadhaarNumber)) {
+      toast.error('Aadhaar number must be exactly 12 digits');
+      return;
+    }
+
+    // Validate phone number format
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      toast.error('Please enter a valid 10-digit phone number starting with 6-9');
+      return;
+    }
+
+    // Note: Aadhaar uniqueness is enforced at database level
+    // One Aadhaar number can only be used for one account
 
     // Remove confirmPassword from formData before sending
     const { confirmPassword, ...userData } = formData;
@@ -99,7 +128,24 @@ const Register = () => {
     // Ensure role isn't admin (disallowed server-side)
     if (payload.role === 'admin') payload.role = 'patient';
     
-    dispatch(registerUser(payload));
+    console.log('Payload being sent:', payload);
+    console.log('API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
+    
+    try {
+      console.log('Dispatching registerUser...');
+      const result = await dispatch(registerUser(payload));
+      console.log('Registration result:', result);
+      
+      if (result.type === 'auth/registerUser/fulfilled') {
+        toast.success('Registration successful! Please check your email for verification.');
+      } else if (result.type === 'auth/registerUser/rejected') {
+        console.error('Registration failed:', result.payload);
+        toast.error(result.payload || 'Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('Registration failed. Please try again.');
+    }
   };
 
   const getRoleDescription = (role) => {
@@ -247,6 +293,33 @@ const Register = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Aadhaar Card Information */}
+        <div>
+          <label htmlFor="aadhaarNumber" className="block text-sm font-medium text-gray-700 mb-1">
+            Aadhaar Number *
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <User size={20} className="text-gray-400" />
+            </div>
+            <input
+              id="aadhaarNumber"
+              name="aadhaarNumber"
+              type="text"
+              value={formData.aadhaarNumber}
+              onChange={handleChange}
+              placeholder="Enter your 12-digit Aadhaar number"
+              className="input pl-10"
+              maxLength="12"
+              pattern="[0-9]{12}"
+              required
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Enter your 12-digit Aadhaar number for identity verification
+          </p>
         </div>
 
         {/* Additional Information */}
