@@ -1,7 +1,7 @@
 # Video Calling Integration Guide
 
 ## Overview
-This guide explains how to use the Agora.io WebRTC video calling integration in the CODE4CARE telemedicine platform.
+This guide explains how to use the Agora.io WebRTC video calling integration in the CODE4SEHAT telemedicine platform.
 
 ## Features Implemented
 

@@ -35,7 +35,7 @@ const AuthLayout = () => {
         {/* Footer */}
         <div className="text-center text-sm text-gray-600">
           <p>© 2025 SWASTHYAMITRA. All rights reserved.</p>
-          <p className="text-xs text-gray-400 mt-1">Empowering rural healthcare through technology — made by TEAM CODE4CARE</p>
+          <p className="text-xs text-gray-400 mt-1">Empowering rural healthcare through technology — made by TEAM CODE4SEHAT</p>
         </div>
       </div>
     </div>

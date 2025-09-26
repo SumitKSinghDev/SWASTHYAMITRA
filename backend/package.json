@@ -1,7 +1,7 @@
 {
-  "name": "code4care-backend",
+  "name": "code4sehat-backend",
   "version": "1.0.0",
-  "description": "CODE4CARE Backend API",
+  "description": "CODE4SEHAT Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -40,6 +40,6 @@
     "api",
     "nodejs"
   ],
-  "author": "CODE4CARE Team",
+  "author": "CODE4SEHAT Team",
   "license": "MIT"
 }
